@@ -6,6 +6,4 @@ def mean_median_dev(data: ArrayLike) -> tuple[float, float, float]:
 
 def report_mean_median_dev(summary_name: str, data: ArrayLike) -> None:
     mean, median, std = np.round(mean_median_dev(data), 2)
-    print(f"Summary of {summary_name}")
-    print(f"    Mean: {mean}, Median: {median}, Stddev: {std}")
-    print()
+    return f"Summary of {summary_name}\n" + f"    Mean: {mean}, Median: {median}, Stddev: {std}\n"

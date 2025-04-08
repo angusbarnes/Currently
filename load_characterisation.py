@@ -1,10 +1,20 @@
 import sqlite3
 import pandas as pd
 import numpy as np
+from io import StringIO
 from envparser import load_env
 from utils import mean_median_dev, report_mean_median_dev
 
-def characterise_load(database_path: str, substation_id):
+def characterise_load(database_path: str, substation_id: str) -> str:
+
+    text = StringIO()
+
+    def str_print(content):
+
+        if (type(content) == str):
+            text.write(content + '\n')
+        else:
+            text.write(repr(content) + '\n')
 
     database_connection = sqlite3.connect(database_path)
     df = pd.read_sql_query(f"SELECT * FROM modbus_logs WHERE device_name = {substation_id}", database_connection)
@@ -21,14 +31,14 @@ def characterise_load(database_path: str, substation_id):
 
     df["load_derived"] = np.sqrt(df["power_active"]**2 + df["power_reactive"]**2)
 
-    print("======================================================================================================")
-    print("                                 LOAD CHARACTERISATION REPORT")
-    print(f"Substation ID: {substation_id}")
-    print(f"Data Points: {len(df)}")
-    print(f"Date Range: {np.min(df['timestamp'])} -> {np.max(df['timestamp'])}")
-    print("======================================================================================================")
-    print(df[["load_a", "load_b", "load_c", "calc_load", "power_active", "power_reactive", "power_apparent", "err %"]])
-    print("======================================================================================================")
+    str_print("======================================================================================================")
+    str_print("                                 LOAD CHARACTERISATION REPORT")
+    str_print(f"Substation ID: {substation_id}")
+    str_print(f"Data Points: {len(df)}")
+    str_print(f"Date Range: {np.min(df['timestamp'])} -> {np.max(df['timestamp'])}")
+    str_print("======================================================================================================")
+    str_print(df[["load_a", "load_b", "load_c", "calc_load", "power_active", "power_reactive", "power_apparent", "err %"]])
+    str_print("======================================================================================================")
 
     spring_filtered = df[df['timestamp'].dt.month.isin([9, 10, 11])]
     summer_filtered = df[df['timestamp'].dt.month.isin([12, 1, 2])]
@@ -41,14 +51,16 @@ def characterise_load(database_path: str, substation_id):
     report_mean_median_dev("Apparent Power", df["power_apparent"])
 
 
-    report_mean_median_dev("Spring Apparent Power", spring_filtered["power_apparent"])
-    report_mean_median_dev("Summer Apparent Power", summer_filtered["power_apparent"])
-    report_mean_median_dev("Autumn Apparent Power", autumn_filtered["power_apparent"])
-    report_mean_median_dev("Winter Apparent Power", winter_filtered["power_apparent"])
+    str_print(report_mean_median_dev("Spring Apparent Power", spring_filtered["power_apparent"]))
+    str_print(report_mean_median_dev("Summer Apparent Power", summer_filtered["power_apparent"]))
+    str_print(report_mean_median_dev("Autumn Apparent Power", autumn_filtered["power_apparent"]))
+    str_print(report_mean_median_dev("Winter Apparent Power", winter_filtered["power_apparent"]))
 
     df['year_month'] = df['timestamp'].dt.to_period('M')
 
     # Aggregate: sum and mean
     monthly_stats = df.groupby('year_month')['power_apparent'].agg(['sum', 'mean', 'std']).reset_index()
 
-    print(monthly_stats)
+    str_print(monthly_stats)
+
+    return text.getvalue()
