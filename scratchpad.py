@@ -1,5 +1,5 @@
 from envparser import load_env
-from load_characterisation import characterise_load
+from load_characterisation import characterise_load, create_load_report
 from contextlib import redirect_stdout
 
 
@@ -11,5 +11,4 @@ with open('substation_ids.txt', 'r') as id_file:
 
 
 for id in IDS:
-    with open(f'./reports/{id}.txt', 'w') as f:
-            f.write(characterise_load(ENV['DATABASE_PATH'], id))
+    create_load_report(characterise_load(ENV['DATABASE_PATH'], id))
