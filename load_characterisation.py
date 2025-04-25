@@ -4,7 +4,7 @@ import numpy as np
 from io import StringIO
 from envparser import load_env
 from utils import mean_median_dev, report_mean_median_dev
-from report_generation import PDFReport, plot_monthly_apparent_power, plot_seasonal_bar
+from report_generation import PDFReport, plot_monthly_apparent_power, plot_seasonal_bar, export_excel_report
 
 class CharacterisedLoad:
     
@@ -16,6 +16,9 @@ class CharacterisedLoad:
 
     def get_main_dataframe(self):
         return self.frame
+    
+    def get_number_of_data_points(self):
+        return len(self.frame)
 
     def get_seasonal_stats(self):
         spring_filtered = self.frame[self.frame['timestamp'].dt.month.isin([9, 10, 11])]
@@ -31,7 +34,40 @@ class CharacterisedLoad:
         }
 
     def get_monthly_stats(self):
-        return self.frame.groupby('year_month')['power_apparent'].agg(['sum', 'mean', 'std']).reset_index()
+        return self.frame.groupby('year_month').agg(
+            power_apparent_mean=('power_apparent', 'mean'),
+            power_active_mean=('power_active', 'mean'),
+            power_reactive_mean=('power_reactive', 'mean'),
+
+            total_energy_delivered=('cumulative_active_energy', lambda x: np.max(x) - np.min(x)),
+
+            voltage_ab_mean=('voltage_ab', 'mean'),
+            voltage_ab_std=('voltage_ab', 'std'),
+            voltage_ab_max=('voltage_ab', 'max'),
+
+            voltage_bc_mean=('voltage_bc', 'mean'),
+            voltage_bc_std=('voltage_bc', 'std'),
+            voltage_bc_max=('voltage_bc', 'max'),
+
+            voltage_ca_mean=('voltage_ca', 'mean'),
+            voltage_ca_std=('voltage_ca', 'std'),
+            voltage_ca_max=('voltage_ca', 'max'),
+
+            current_a_mean=('current_a', 'mean'),
+            current_a_std=('current_a', 'std'),
+            current_a_max=('current_a', 'max'),
+            current_a_p99=('current_a', lambda x: x.quantile(0.99)),
+
+            current_b_mean=('current_b', 'mean'),
+            current_b_std=('current_b', 'std'),
+            current_b_max=('current_a', 'max'),
+            current_b_p99=('current_b', lambda x: x.quantile(0.99)),
+
+            current_c_mean=('current_c', 'mean'),
+            current_c_std=('current_c', 'std'),
+            current_c_max=('current_a', 'max'),
+            current_c_p99=('current_c', lambda x: x.quantile(0.99)),
+        ).reset_index()
     
     def get_date_range(self) -> tuple[str, str]:
         return (np.min(self.frame['timestamp']), np.max(self.frame['timestamp']))
@@ -48,6 +84,18 @@ def characterise_load(database_path: str, substation_id: str):
     df["load_a"] = np.round((df["voltage_an"] * df["current_a"])/1000, 3)
     df["load_b"] = np.round((df["voltage_bn"] * df["current_b"])/1000, 3)
     df["load_c"] = np.round((df["voltage_cn"] * df["current_c"])/1000, 3)
+
+    def phase_imbalance(row):
+        phases = [row['current_a'], row['current_b'], row['current_c']]
+        avg = sum(phases) / 3
+
+        if avg == 0:
+            return 0
+        
+        return (max(phases) - avg) / avg * 100
+
+    # From NEMA: imbalance = (max(phase_currents) - avg(phase_currents)) / avg(phase_currents) * 100
+    df['imbalance'] = df.apply(phase_imbalance, axis=1)
 
     df["calc_load"] = df["load_a"] + df["load_b"] + df["load_c"]
     df["delta"] = df["calc_load"] - df["power_apparent"]
@@ -76,31 +124,27 @@ def characterise_load(database_path: str, substation_id: str):
 
 
 def create_load_report(load_data: CharacterisedLoad):
-    pdf = PDFReport()
-    pdf.add_page()
 
-    # Report Header
-    pdf.set_font("Arial", "", 10)
-    pdf.cell(None, 10, f"Substation ID: {load_data.substation_id}", ln=1)
-    pdf.cell(None, 10, f"Data Points: {len(load_data.get_main_dataframe())}", ln=1)
-    dates = load_data.get_date_range()
-    pdf.cell(None, 10, f"Date Range: {dates[0]} -> {dates[1]}", ln=1)
+    p90_abs_active = load_data.get_main_dataframe()['power_active'].abs().quantile(0.90)
 
-    # Seasonal Summary
-    pdf.chapter_title("Summary of Seasonal Apparent Power")
-    for season, stats in load_data.get_seasonal_stats().items():
-        line = f"{season}: Mean = {stats['Mean']}, Median = {stats['Median']}, Stddev = {stats['Stddev']}"
-        pdf.chapter_text(line)
+    # Step 2: Find the row(s) where the absolute value is closest to the 99th percentile
+    row_90th_active = load_data.get_main_dataframe().loc[(load_data.get_main_dataframe()['power_active'].abs() - p90_abs_active).abs().idxmin()]
 
-    # Monthly Chart
-    pdf.chapter_title("Monthly Mean Apparent Power")
-    chart1 = plot_monthly_apparent_power(load_data.get_monthly_stats())
-    pdf.insert_image(chart1)
+    p90_abs_reactive = load_data.get_main_dataframe()['power_reactive'].abs().quantile(0.90)
 
-    # Seasonal Chart
-    pdf.chapter_title("Seasonal Mean Apparent Power")
-    chart2 = plot_seasonal_bar(load_data.get_seasonal_stats())
-    pdf.insert_image(chart2)
+    # Step 2: Find the row(s) where the absolute value is closest to the 99th percentile
+    row_90th_reactive = load_data.get_main_dataframe().loc[(load_data.get_main_dataframe()['power_reactive'].abs() - p90_abs_reactive).abs().idxmin()]
 
-    # Save PDF
-    pdf.output(f"{load_data.substation_id}_load_characterisation_report.pdf")
+    export_excel_report({
+        "substation_id": load_data.substation_id,
+        "start_date": load_data.get_date_range()[0],
+        "end_date": load_data.get_date_range()[1],
+        "data_points": load_data.get_number_of_data_points(),
+        "monthly_stats": load_data.get_monthly_stats(),
+        "imbalance": np.round(np.mean(load_data.get_main_dataframe()['imbalance']), 2),
+        "energy": np.round(max(load_data.get_main_dataframe()['cumulative_active_energy'])),
+        "pload": np.nanmean(load_data.get_main_dataframe()['power_active']),
+        "qload": np.nanmean(load_data.get_main_dataframe()['power_reactive']),
+        "90pload": row_90th_active['power_active'],
+        "90qload": row_90th_reactive['power_reactive']
+    }, output_path=f"{load_data.substation_id}_load_summary.xlsx")
