@@ -127,13 +127,14 @@ def create_load_report(load_data: CharacterisedLoad):
 
     p90_abs_active = load_data.get_main_dataframe()['power_active'].abs().quantile(0.90)
 
-    # Step 2: Find the row(s) where the absolute value is closest to the 99th percentile
     row_90th_active = load_data.get_main_dataframe().loc[(load_data.get_main_dataframe()['power_active'].abs() - p90_abs_active).abs().idxmin()]
 
     p90_abs_reactive = load_data.get_main_dataframe()['power_reactive'].abs().quantile(0.90)
 
-    # Step 2: Find the row(s) where the absolute value is closest to the 99th percentile
     row_90th_reactive = load_data.get_main_dataframe().loc[(load_data.get_main_dataframe()['power_reactive'].abs() - p90_abs_reactive).abs().idxmin()]
+
+    pload = np.nanmean(load_data.get_main_dataframe()['power_active'])
+    qload = np.nanmean(load_data.get_main_dataframe()['power_reactive'])
 
     export_excel_report({
         "substation_id": load_data.substation_id,
@@ -143,8 +144,10 @@ def create_load_report(load_data: CharacterisedLoad):
         "monthly_stats": load_data.get_monthly_stats(),
         "imbalance": np.round(np.mean(load_data.get_main_dataframe()['imbalance']), 2),
         "energy": np.round(max(load_data.get_main_dataframe()['cumulative_active_energy'])),
-        "pload": np.nanmean(load_data.get_main_dataframe()['power_active']),
-        "qload": np.nanmean(load_data.get_main_dataframe()['power_reactive']),
+        "pload": pload,
+        "qload": qload,
         "90pload": row_90th_active['power_active'],
         "90qload": row_90th_reactive['power_reactive']
     }, output_path=f"{load_data.substation_id}_load_summary.xlsx")
+
+    return pload, qload

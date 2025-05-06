@@ -10,6 +10,12 @@ IDS = []
 with open('substation_ids.txt', 'r') as id_file:
     IDS = map(lambda x: x.strip(), id_file.readlines())
 
+IDS = list(IDS)
 
-for id in tqdm(list(IDS)):
-    create_load_report(characterise_load(ENV['DATABASE_PATH'], id))
+pload_total, qload_total = 0, 0
+for id in tqdm(IDS):
+    pload, qload = create_load_report(characterise_load(ENV['DATABASE_PATH'], id))
+    pload_total += pload
+    qload_total += qload
+
+print(f"Average Loads Per Sub: P = {pload_total/len(IDS):.2f}, Q = {qload_total/len(IDS):.2f}")
