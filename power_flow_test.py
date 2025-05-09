@@ -6,8 +6,8 @@ import math
 from dataclasses import dataclass, field
 from typing import List, Optional
 import logging
-
-logging.basicConfig(level=logging.INFO, format='[%(levelname)s]: %(message)s')
+import argparse
+import sys
 
 def string_to_bool(s):
     s = s.lower()
@@ -17,6 +17,37 @@ def string_to_bool(s):
         return False
     else:
         raise ValueError(f"Invalid boolean string: '{s}'")
+
+default_config = {
+    "show": True,
+    "force-active": False,
+    "debug": False
+}
+
+def parse_params(args):
+    config = default_config.copy()
+    if "--params" in args:
+        idx = args.index("--params") + 1
+        while idx < len(args) and args[idx].startswith("--"):
+            key_value = args[idx][2:].split("=", 1)
+            if len(key_value) == 2:
+                key, value = key_value
+                if value.isdigit():
+                    value = int(value)
+                else:
+                    try: value = string_to_bool(value)
+                    except: pass
+
+                config[key] = value
+            idx += 1
+    return config
+
+config = parse_params(sys.argv)
+
+
+logging.basicConfig(level=logging.INFO, format='[%(levelname)s]: %(message)s')
+logging.info(f"Final Config: {config}")
+
 
 @dataclass
 class FeederDefinition:
@@ -79,6 +110,9 @@ with open('network.csv', newline='') as csvfile:
             feeder_type=feeder_type,
             active=string_to_bool(active)
         )
+
+        if config["force-active"]:
+            feeder_def.active = True
 
         if bus not in bus_nodes:
             bus_nodes[bus] = BusNode(
@@ -180,6 +214,7 @@ def draw_tree(screen, font, node: BusNode, positions, offset_x, offset_y, zoom):
         cy = int(cy * zoom + offset_y)
 
         _active = False
+        _size = 0
         for feeder in child.feeders:
             if feeder.feeder_bus == node.name:
                 _active = feeder.active
@@ -264,7 +299,8 @@ mpc = pp.converter.to_mpc(net)
 # Save as .mat file compatible with MATPOWER
 savemat("matpower_case.mat", {"mpc": mpc})
 
-run_visualization(tree_elements['slack'])
+if config["show"]:
+    run_visualization(tree_elements['slack'])
 
 # # simple_plotly(net)
 
