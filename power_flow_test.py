@@ -8,45 +8,11 @@ from typing import List, Optional
 import logging
 import argparse
 import sys
-
-def string_to_bool(s):
-    s = s.lower()
-    if s in ('true', '1', 't'):
-        return True
-    elif s in ('false', '0', 'f', ''):
-        return False
-    else:
-        raise ValueError(f"Invalid boolean string: '{s}'")
-
-default_config = {
-    "show": True,
-    "force-active": False,
-    "debug": False
-}
-
-def parse_params(args):
-    config = default_config.copy()
-    if "--params" in args:
-        idx = args.index("--params") + 1
-        while idx < len(args) and args[idx].startswith("--"):
-            key_value = args[idx][2:].split("=", 1)
-            if len(key_value) == 2:
-                key, value = key_value
-                if value.isdigit():
-                    value = int(value)
-                else:
-                    try: value = string_to_bool(value)
-                    except: pass
-
-                config[key] = value
-            idx += 1
-    return config
-
-config = parse_params(sys.argv)
-
+from utils import string_to_bool
+from config import CONFIG
 
 logging.basicConfig(level=logging.INFO, format='[%(levelname)s]: %(message)s')
-logging.info(f"Final Config: {config}")
+logging.info(f"Final Config: {CONFIG}")
 
 
 @dataclass
@@ -111,7 +77,7 @@ with open('network.csv', newline='') as csvfile:
             active=string_to_bool(active)
         )
 
-        if config["force-active"]:
+        if CONFIG["force-active"]:
             feeder_def.active = True
 
         if bus not in bus_nodes:
@@ -299,7 +265,7 @@ mpc = pp.converter.to_mpc(net)
 # Save as .mat file compatible with MATPOWER
 savemat("matpower_case.mat", {"mpc": mpc})
 
-if config["show"]:
+if CONFIG["show"]:
     run_visualization(tree_elements['slack'])
 
 # # simple_plotly(net)
