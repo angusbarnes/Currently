@@ -42,7 +42,6 @@ def export_excel_report(data, output_path="load_report.xlsx"):
         summary_ws.write_string(14, 0, "P90 Q load (kVAr)")
         summary_ws.write_number(14, 1, data['90qload'])
 
-        # Write monthly stats
         monthly_stats: pd.DataFrame = np.round(data['monthly_stats'], 3)
         monthly_stats.to_excel(writer, sheet_name="Monthly Stats", index=False)
 
@@ -78,13 +77,10 @@ def export_excel_report(data, output_path="load_report.xlsx"):
         phase_chart.set_x_axis({'name': 'Year-Month'})
         phase_chart.set_y_axis({'name': 'Mean'})
 
-        # Insert the chart into the worksheet
         stats_ws.insert_chart(f'B{len(monthly_stats)+3}', phase_chart)
 
 
         energy_chart = wb.add_chart({'type': 'line'})
-
-        # Configure the chart using worksheet cell ranges
         energy_chart.add_series({
             'name':       'Energy',
             'categories': f"='Monthly Stats'!$A$2:$A${len(monthly_stats)+1}", 
@@ -119,7 +115,7 @@ def export_excel_report(data, output_path="load_report.xlsx"):
 
         # stats_ws.insert_image("G2", "chart.png", {"image_data": img_data, "x_scale": 0.8, "y_scale": 0.8})
 
-# ---------- Plot Charts ----------
+
 def plot_monthly_apparent_power(df):
     df = df.copy()
     df['year_month'] = pd.to_datetime(df['year_month'], errors='coerce')
@@ -133,7 +129,7 @@ def plot_monthly_apparent_power(df):
 
     buf = BytesIO()
     plt.savefig(buf, format='png')
-    plt.close()  # Important: free memory
+    plt.close()  
     buf.seek(0)
     return buf
 
