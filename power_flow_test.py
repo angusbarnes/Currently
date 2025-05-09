@@ -1,115 +1,89 @@
 import csv
 from dataclasses import dataclass
 import pandapower as pp
-import pandapower.networks as pn
-import pandapower.topology as top
-import networkx as nx
-from networkx.drawing.nx_pydot import graphviz_layout 
-import matplotlib.pyplot as plt
-from pprint import pprint
-from pandapower.plotting.plotly import simple_plotly
-from collections import deque
 import pygame
 import math
+from dataclasses import dataclass, field
+from typing import List, Optional
 
 @dataclass
-class BusDefinition:
-    bus_name: str
+class FeederDefinition:
     feeder_bus: str
     feeder_length: float
-    bus_rated_load: float
-    substation: str
+    feeder_type: str
 
+@dataclass
 class BusNode:
-    def __init__(self, name, rating, length_from_parent=0.0):
-        self.name = name
-        self.length = length_from_parent
-        self.children = []
-        self.rating = rating
+    name: str
+    rating: float
+    substation: str
+    feeders: List[FeederDefinition] = field(default_factory=list)
+    children: List['BusNode'] = field(default_factory=list)
+    pp_bus: Optional[int] = None  # Will store the pandapower bus index
 
     def add_child(self, child_bus):
         self.children.append(child_bus)
 
-
 # Load CSV
-bus_definitions = []
-defined_busses = set()
-
+bus_nodes = {}
 with open('network.csv', newline='') as csvfile:
-    spamreader = csv.reader(csvfile)
-    next(spamreader)  # Skip header
+    reader = csv.reader(csvfile)
+    next(reader)  # Skip header
 
-    for bus, feeder, feeder_length, feeder_type, rating, substation, _ in spamreader:
-        if bus in defined_busses:
-            raise Exception(f"Re-definition of bus: {bus}")
-        bus_definitions.append(
-            BusDefinition(
-                bus, 
-                feeder, 
-                float(feeder_length) / 1000,
-                float(rating),
-                substation
-            )
+    for bus, feeder, feeder_length, feeder_type, rating, substation, _ in reader:
+        feeder_def = FeederDefinition(
+            feeder_bus=feeder,
+            feeder_length=float(feeder_length) / 1000,
+            feeder_type=feeder_type
         )
-        defined_busses.add(bus)
 
-# Build dependency graph
-unresolved = {bus.bus_name: bus for bus in bus_definitions}
-resolved = {}
+        if bus not in bus_nodes:
+            bus_nodes[bus] = BusNode(
+                name=bus,
+                rating=float(rating),
+                substation=substation
+            )
+        bus_nodes[bus].feeders.append(feeder_def)
+
+# Create pandapower network and BusNode objects
 net = pp.create_empty_network()
 
-bus_objects = {}
-queue = deque()
+# Create pandapower bus for each node
+for node in bus_nodes.values():
+    node.pp_bus = pp.create_bus(net, vn_kv=11.0, name=node.name)
 
-slack_name = "slack"
-slack_bus_obj = pp.create_bus(net, vn_kv=11.0)
-bus_objects[slack_name] = slack_bus_obj
-pp.create_ext_grid(net, bus=slack_bus_obj)
-resolved[slack_name] = True
+# Add slack bus if not defined in CSV
+if "slack" not in bus_nodes:
+    slack_node = BusNode("slack", rating=0.0, substation="slack")
+    slack_node.pp_bus = pp.create_bus(net, vn_kv=11.0, name="slack")
+    pp.create_ext_grid(net, bus=slack_node.pp_bus)
+    bus_nodes["slack"] = slack_node
+else:
+    pp.create_ext_grid(net, bus=bus_nodes["slack"].pp_bus)
 
-tree_elements = {"slack": BusNode(slack_name, 10)}
+# Create connections
+for node in bus_nodes.values():
+    for feeder in node.feeders:
+        if feeder.feeder_bus not in bus_nodes:
+            raise Exception(f"Feeder bus '{feeder.feeder_bus}' not defined for bus '{node.name}'")
+        feeder_node = bus_nodes[feeder.feeder_bus]
 
-while unresolved:
-    progress_made = False
-    to_remove = []
-
-    for name, bus in unresolved.items():
-        if bus.feeder_bus in resolved:
-            graphical_bus_object = BusNode(bus.bus_name, bus.bus_rated_load, bus.feeder_length)
-
-            tree_elements[bus.bus_name] = graphical_bus_object
-            tree_elements[bus.feeder_bus].add_child(graphical_bus_object)
-            
-            bus_obj = pp.create_bus(net, 11.0, name=name)
-            bus_objects[bus.bus_name] = bus_obj
-            pp.create_line(
-                net,
-                from_bus=bus_objects[bus.feeder_bus],
-                to_bus=bus_objects[bus.bus_name],
-                length_km=bus.feeder_length,
-                std_type="NAYY 4x50 SE"
-            )
-
-            pp.create_load(net, bus=bus_obj, p_mw=bus.bus_rated_load, q_mvar=0.1)
-            resolved[bus.bus_name] = True
-            to_remove.append(name)
-            progress_made = True
-
-    for name in to_remove:
-        #TODO: Perhaps refactor to remove unsafe delete call
-        del unresolved[name]
-
-    if not progress_made:
-        raise Exception(
-            f"Could not resolve all buses. Remaining unresolved: {list(unresolved.keys())}. "
-            "Possible circular dependency or missing feeder bus."
+        pp.create_line(
+            net,
+            from_bus=feeder_node.pp_bus,
+            to_bus=node.pp_bus,
+            length_km=feeder.feeder_length,
+            std_type="NAYY 4x50 SE"
         )
+        feeder_node.add_child(node)
 
-pprint(net)
+    if node.rating > 0:
+        pp.create_load(net, bus=node.pp_bus, p_mw=node.rating, q_mvar=0.1)
+
+tree_elements = {name: node for name, node in bus_nodes.items()}
 
 
-# Recursive function to calculate layout positions
-def layout_tree(node, x, y, spacing_x, spacing_y, positions, depth=0):
+def layout_tree(node: BusNode, x, y, spacing_x, spacing_y, positions, depth=0):
     positions[node.name] = (x, y)
     num_children = len(node.children)
     if num_children == 0:
@@ -120,7 +94,17 @@ def layout_tree(node, x, y, spacing_x, spacing_y, positions, depth=0):
 
     for i, child in enumerate(node.children):
         child_x = start_x + i * spacing_x
-        child_y = y + spacing_y * max(0.5, child.length*10)
+
+        _length = -1
+        for feeder in child.feeders:
+            if feeder.feeder_bus == node.name:
+                _length = feeder.feeder_length
+                break
+
+        if _length < 0:
+            raise Exception("Could not find relevant feeder length for child node")
+        
+        child_y = y + spacing_y * max(0.5, _length*10)
         layout_tree(child, child_x, child_y, spacing_x, spacing_y, positions)
 
 def draw_tree(screen, font, node: BusNode, positions, offset_x, offset_y, zoom):
