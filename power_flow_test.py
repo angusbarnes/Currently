@@ -31,39 +31,6 @@ class BusNode:
         self.children.append(child_bus)
 
 
-# Recursive function to calculate layout positions
-def layout_tree(node, x, y, spacing_x, spacing_y, positions, depth=0):
-    positions[node.name] = (x, y)
-    num_children = len(node.children)
-    if num_children == 0:
-        return
-
-    width = (num_children - 1) * spacing_x
-    start_x = x - width // 2
-
-    for i, child in enumerate(node.children):
-        child_x = start_x + i * spacing_x
-        child_y = y + spacing_y * max(0.5, child.length*10)
-        layout_tree(child, child_x, child_y, spacing_x, spacing_y, positions)
-
-def draw_tree(screen, font, node: BusNode, positions, offset_x, offset_y, zoom):
-    x, y = positions[node.name]
-    x = int(x * zoom + offset_x)
-    y = int(y * zoom + offset_y)
-
-    pygame.draw.circle(screen, (0, 100, 255), (x, y), int(20 * zoom) * math.sqrt(node.rating/0.5))
-    text = font.render(node.name, True, (255, 255, 255))
-    text_rect = text.get_rect(center=(x, y))
-    screen.blit(text, text_rect)
-
-    for child in node.children:
-        cx, cy = positions[child.name]
-        cx = int(cx * zoom + offset_x)
-        cy = int(cy * zoom + offset_y)
-        pygame.draw.line(screen, (200, 200, 200), (x, y), (cx, cy), max(1, int(2 * zoom)))
-        draw_tree(screen, font, child, positions, offset_x, offset_y, zoom)
-
-
 # Load CSV
 bus_definitions = []
 defined_busses = set()
@@ -139,6 +106,39 @@ while unresolved:
         )
 
 pprint(net)
+
+
+# Recursive function to calculate layout positions
+def layout_tree(node, x, y, spacing_x, spacing_y, positions, depth=0):
+    positions[node.name] = (x, y)
+    num_children = len(node.children)
+    if num_children == 0:
+        return
+
+    width = (num_children - 1) * spacing_x
+    start_x = x - width // 2
+
+    for i, child in enumerate(node.children):
+        child_x = start_x + i * spacing_x
+        child_y = y + spacing_y * max(0.5, child.length*10)
+        layout_tree(child, child_x, child_y, spacing_x, spacing_y, positions)
+
+def draw_tree(screen, font, node: BusNode, positions, offset_x, offset_y, zoom):
+    x, y = positions[node.name]
+    x = int(x * zoom + offset_x)
+    y = int(y * zoom + offset_y)
+
+    pygame.draw.circle(screen, (0, 100, 255), (x, y), int(20 * zoom) * math.sqrt(node.rating/0.5))
+    text = font.render(node.name, True, (255, 255, 255))
+    text_rect = text.get_rect(center=(x, y))
+    screen.blit(text, text_rect)
+
+    for child in node.children:
+        cx, cy = positions[child.name]
+        cx = int(cx * zoom + offset_x)
+        cy = int(cy * zoom + offset_y)
+        pygame.draw.line(screen, (200, 200, 200), (x, y), (cx, cy), max(1, int(2 * zoom)))
+        draw_tree(screen, font, child, positions, offset_x, offset_y, zoom)
 
 def run_visualization(root):
     pygame.init()
