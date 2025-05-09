@@ -3,7 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import xlsxwriter
 import seaborn as sns
-from fpdf import FPDF
 from io import BytesIO
 
 def export_excel_report(data, output_path="load_report.xlsx"):
@@ -148,44 +147,3 @@ def plot_seasonal_bar(seasonal_stats):
     plt.savefig(buf, format='png')
     buf.seek(0)
     return buf
-
-# ---------- PDF Generation ----------
-class PDFReport(FPDF):
-    def header(self):
-        self.set_font("Arial", "B", 12)
-        self.cell(None, 10, "LOAD CHARACTERISATION REPORT", ln=1, align='C')
-
-    def chapter_title(self, title):
-        self.set_font("Arial", "B", 12)
-        self.ln(5)
-        self.cell(None, 10, title, ln=1, align='L')
-
-    def chapter_text(self, text):
-        self.set_font("Arial", "", 10)
-        self.multi_cell(180, 5, text)
-        self.ln(5)
-
-    def insert_image(self, img_buf, w=180):
-        self.ln(5)
-        self.image(img_buf, x=None, y=None, w=w)
-
-    def header(self):
-        # Logo
-        self.image('logo_pb.png', 10, 8, 33)
-        # Arial bold 15
-        self.set_font('Arial', 'B', 15)
-        # Move to the right
-        self.cell(80)
-        # Title
-        self.cell(30, 10, 'Title', 1, 0, 'C')
-        # Line break
-        self.ln(20)
-
-    # Page footer
-    def footer(self):
-        # Position at 1.5 cm from bottom
-        self.set_y(-15)
-        # Arial italic 8
-        self.set_font('Arial', 'I', 8)
-        # Page number
-        self.cell(0, 10, 'Page ' + str(self.page_no()) + '/{nb}', 0, 0, 'C')
