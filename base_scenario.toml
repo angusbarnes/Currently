@@ -1,0 +1,4 @@
+debug = true
+target-voltage = 11000
+show = true
+force-active = false
