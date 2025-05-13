@@ -6,10 +6,12 @@ import math
 from dataclasses import dataclass, field
 from typing import List, Optional
 import logging
+import pandas as pd
 import argparse
 import sys
 from utils import string_to_bool
 from config import CONFIG
+import random
 
 logging.basicConfig(level=logging.INFO, format='[%(levelname)s]: %(message)s')
 logging.info(f"Final Config: {CONFIG}")
@@ -91,12 +93,12 @@ with open('network.csv', newline='') as csvfile:
 logging.info(f"{len(bus_nodes)} unique buses loaded from network definition.")
 
 # Create pandapower bus for each node
-for node in bus_nodes.values():
-    node.pp_bus = pp.create_bus(net, vn_kv=11.0, name=node.name)
+for i, node in enumerate(bus_nodes.values()):
+    node.pp_bus = pp.create_bus(net, vn_kv=11.0, name=node.name, index=i+1)
 
 if "slack" not in bus_nodes:
     slack_node = BusNode("slack", rating=0.0, substation="slack")
-    slack_node.pp_bus = pp.create_bus(net, vn_kv=11.0, name="slack")
+    slack_node.pp_bus = pp.create_bus(net, vn_kv=11.0, name="slack", index=0)
     pp.create_ext_grid(net, bus=slack_node.pp_bus)
     bus_nodes["slack"] = slack_node
     logging.info("Slack bus created and set as external grid.")
@@ -127,7 +129,8 @@ for node in bus_nodes.values():
                 from_bus=feeder_node.pp_bus,
                 to_bus=node.pp_bus,
                 length_km=feeder.feeder_length,
-                std_type=line_type
+                std_type=line_type,
+                name=f"FROM: {feeder_node.name}, TO: {node.name}"
             )
         lines_created += 1
         feeder_node.add_child(node)
@@ -160,6 +163,10 @@ def layout_tree(node: BusNode, x, y, spacing_x, spacing_y, positions, depth=0):
 
         if _length < 0:
             raise Exception("Could not find relevant feeder length for child node")
+        
+        # Declutter display for very short cables
+        if _length < 0.050:
+            _length += 0.050
         
         child_y = y + spacing_y * max(0.5, _length*10)
         layout_tree(child, child_x, child_y, spacing_x, spacing_y, positions)
@@ -253,9 +260,18 @@ def run_visualization(root):
 logging.info(net)
 pp.runpp(net)
 
-print(net.res_bus.vm_pu)
-print(net.res_bus)
-print(net.res_line.loading_percent)
+bus_results = net.res_bus.copy()
+bus_results["bus_name"] = net.bus["name"]
+bus_results["voltage"] = bus_results["vm_pu"] * 11000
+bus_results["drop"] = 11000 - bus_results["voltage"]
+
+line_results: pd.DataFrame = net.res_line.copy()
+line_results["line_name"] = net.line["name"]
+line_results["from_bus_name"] = net.line["from_bus"].map(net.bus["name"])
+line_results["to_bus_name"] = net.line["to_bus"].map(net.bus["name"])
+
+line_results.to_csv('line_results.csv')
+bus_results.to_csv('bus_results.csv')
 
 from scipy.io import savemat
 
