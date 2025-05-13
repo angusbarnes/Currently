@@ -12,6 +12,17 @@ import sys
 from utils import string_to_bool
 from config import CONFIG
 import random
+import time
+
+def safe_str_to_float(s):
+    if not isinstance(s, str):
+        return None
+    try:
+        cleaned = s.strip().replace(',', '').replace('"', '').replace("'", '')
+        return float(cleaned)
+    except ValueError:
+        return None
+
 
 logging.basicConfig(level=logging.INFO, format='[%(levelname)s]: %(message)s')
 logging.info(f"Final Config: {CONFIG}")
@@ -32,6 +43,8 @@ class BusNode:
     feeders: List[FeederDefinition] = field(default_factory=list)
     children: List['BusNode'] = field(default_factory=list)
     pp_bus: Optional[int] = None  # Will store the pandapower bus index
+    characterised_load_kw: float = None
+    characterised_load_kvar: float  = None
 
     def add_child(self, child_bus):
         self.children.append(child_bus)
@@ -67,11 +80,17 @@ logging.info(f"{len(known_cables)} cable types registered successfully.")
 
 # Load CSV
 bus_nodes: dict[str, BusNode] = {}
+
+accounted_p_kw = 0
+accounted_q_kvar = 0
+
+cumulative_rating = 0
+
 with open('network.csv', newline='') as csvfile:
     reader = csv.reader(csvfile)
     next(reader)  # Skip header
 
-    for bus, feeder, feeder_length, feeder_type, rating, substation, active, _ in reader:
+    for bus, feeder, feeder_length, feeder_type, rating, substation, active, p, q, _ in reader:
         feeder_def = FeederDefinition(
             feeder_bus=feeder,
             feeder_length=float(feeder_length) / 1000,
@@ -81,13 +100,34 @@ with open('network.csv', newline='') as csvfile:
 
         if CONFIG["force-active"]:
             feeder_def.active = True
+        
+        _p = safe_str_to_float(p)
+        _q = safe_str_to_float(q)
+
+        # We must have both values defined for it to be valid
+        assert (not _p) == (not _q)
+
+
 
         if bus not in bus_nodes:
+
+            # We only use loads for the first definition of a bus
+            if not _p and not _q:
+                cumulative_rating += safe_str_to_float(rating)
+            else:
+                accounted_p_kw += _p
+                accounted_q_kvar += _q
+
             bus_nodes[bus] = BusNode(
                 name=bus,
-                rating=float(rating),
-                substation=substation
+                rating=safe_str_to_float(rating),
+                substation=substation,
+                characterised_load_kw=_p,
+                characterised_load_kvar=_q
             )
+
+
+
         bus_nodes[bus].feeders.append(feeder_def)
 
 logging.info(f"{len(bus_nodes)} unique buses loaded from network definition.")
@@ -108,7 +148,10 @@ else:
 
 lines_created = 0
 loads_created = 0
-fallback_cable = "3C_70mm2_XLPE_SWA"
+fallback_cable = "3C_70mm2_PILC_SWA"
+
+unaccounted_load_kw = CONFIG["total-site-load-kw"] - accounted_p_kw
+unaccounted_load_kvar = CONFIG["total-site-load-kvar"] - accounted_q_kvar
 
 for node in bus_nodes.values():
     for feeder in node.feeders:
@@ -135,9 +178,18 @@ for node in bus_nodes.values():
         lines_created += 1
         feeder_node.add_child(node)
 
+    # We do not attach loads directly to slack
+    if node.name == "slack": continue
+
     if node.rating > 0:
-        pp.create_load(net, bus=node.pp_bus, p_mw=node.rating, q_mvar=0.1)
+
+        if node.characterised_load_kvar and node.characterised_load_kw:
+            pp.create_load(net, bus=node.pp_bus, p_mw=node.characterised_load_kw/1000, q_mvar=node.characterised_load_kvar/1000)
+        else:
+            pp.create_load(net, bus=node.pp_bus, p_mw=unaccounted_load_kw/1000 * node.rating/cumulative_rating, q_mvar=unaccounted_load_kvar/1000 * node.rating/cumulative_rating)
         loads_created += 1
+    else:
+        raise Exception(f"Undefined transformer rating for: {node.name}")
 
 tree_elements = {name: node for name, node in bus_nodes.items()}
 
@@ -258,12 +310,17 @@ def run_visualization(root):
     pygame.quit()
 
 logging.info(net)
+
+start = time.time()
 pp.runpp(net)
+stop = time.time()
+
+print(f"Execution time = {stop-start}")
 
 bus_results = net.res_bus.copy()
 bus_results["bus_name"] = net.bus["name"]
-bus_results["voltage"] = bus_results["vm_pu"] * 11000
-bus_results["drop"] = 11000 - bus_results["voltage"]
+bus_results["voltage"] = bus_results["vm_pu"] * CONFIG["target-voltage"]
+bus_results["drop"] = CONFIG["target-voltage"] - bus_results["voltage"]
 
 line_results: pd.DataFrame = net.res_line.copy()
 line_results["line_name"] = net.line["name"]
