@@ -2,3 +2,5 @@ debug = true
 target-voltage = 11000
 show = true
 force-active = false
+total-site-load-kw = 8292.20
+total-site-load-kvar = 3103.2082
