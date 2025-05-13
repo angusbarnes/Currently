@@ -1,38 +1,46 @@
-Bus Name,Feeder Bus,Feeder Length (m),Feeder Type,Rating (MVA),Substation,Notes
-SUB10_RM6,SUB5_HV_B,140,3C_70mm2_XLPE_SWA,0.750,Substaation 10,
-SUB11A_RM6,SUB21A_RM6,60,3C_70mm2_XLPE_SWA,0.750,Substation 11A,Normally Open HV link to SUB11B_RM6
-SUB11B_RM6,SUB21B_RM6,60,3C_70mm2_XLPE_SWA,0.750,Substation 11B,
-SUB12_RM6,SUB18_RM6,200,,0.750,Substation 12,Normally Open HV link to SUB24_RM6
-SUB14_HV_A,slack,705,3Cx1C_300mm2_EPR,6,Substation 14,Normally Open link to SUB14_HV_B
-SUB14_HV_B,slack,705,3Cx1C_300mm2_EPR,6,Substation 14,Normally Open link to SUB14_HV_A
-SUB15_RM6,slack,124,3Cx1C_300mm2_EPR,0.8,Substation 15,
-SUB16_RM6,SUB25A_RM6,307,JOIN24_LINE,0.5,Substation 16,
-SUB17_RM6,slack,312,3C_70mm2_XLPE_SWA,0.8,Substastion 17,
-SUB18_RM6,SUB10_RM6,65,,0.8,Substation 18,
-SUB19A_RM6,slack,400,3C_70mm2_XLPE_SWA,1,Substation 19A,
-SUB19B_RM6,slack,400,3C_70mm2_XLPE_SWA,1,Substation 19B,Normally Open HV link to SUB19A_RM6
-SUB20_RM6,SUB8_RM6,253,3C_70mm2_XLPE_SWA,0.8,Substation 20,Future cable to slack bus
-SUB21A_RM6,slack,185,3C_70mm2_XLPE_SWA,1,Substation 21A,Normally Open HV link to SUB21B_RM6
-SUB21B_RM6,slack,185,3C_70mm2_XLPE_SWA,1,Substation 21B,
-SUB22A_RM6,SUB26_RM6,275,3C_300mm2_XLPE_SWA,1.5,Substation 22A,Normally Open HV link to SUB22B_RM6
-SUB22B_RM6,SUB23_RM6,370,3C_300mm2_XLPE_SWA,1.5,Substation 22B,
-SUB23_RM6,slack,130,JOIN4_LINE,0.8,Substation 23,
-SUB24_RM6,SUB7_HV_B,387,,1,Substation 24,
-SUB25A_RM6,slack,335,JOIN22_JOIN23_LINE,1,Substation 25A,
-SUB25B_RM6,slack,435,JOIN25_JOIN26_LINE,0.8,Substation 25,Normally Open Link to SUB25A_RM6
-SUB26_RM6,SUB15_RM6,95,JOIN3_LINE,1,Substation 26,Normally Closed HV link to SUB22A_RM6
-SUB27A_RM6,slack,710,JOIN5_JOIN34_JOIN33_LINE,1,Substation 27A,
-SUB27B_RM6,slack,715,,1,Substation 27B,
-SUB29A_RM6,SUB27A_RM6,100,,1,Substation 29A,
-SUB29B_RM6,SUB27B_RM6,100,,1,Substation 29B,Normally Open HV link to SUB29A_RM6
-SUB30_RM6,SUB31_RM6,5,3C_300mm2_XLPE_SWA,1,Substation 30,
-SUB31_RM6,SUB16_RM6,85,3C_300mm2_XLPE_SWA,1,Substation 31,
-SUB3_HV_A,slack,540,,1,Substation 3,Normally Open HV link to SUB3_HV_B
-SUB3_HV_B,slack,540,,1,Substation 3,
-SUB4_RM6,SUB3_HV_B,405,,0.8,Substation 4,
-SUB5_HV_A,SUB19A_RM6,40,JOIN30_LINE,1,Substation 5,Normally Open HV link to SUB5_HV_B
-SUB5_HV_B,SUB19B_RM6,40,3C_70mm2_XLPE_SWA,0.5,Substation 5,
-SUB7_HV_A,SUB29A_RM6,55,,2,Substation 7,
-SUB7_HV_B,SUB29B_RM6,50,,1,Substation 7,Normally Open HV link to SUB7_HV_A
-SUB8_RM6,SUB17_RM6,315,JOIN1_JOIN2_LINE,0.750,Substation 8,
-SUB9_RM6,SUB3_HV_A,500,,0.5,Substation 9,Normally Open HV link to SUB4_RM6
+Bus Name,Feeder Bus,Feeder Length (m),Feeder Type,Rating (MVA),Substation,Active,Notes
+SUB10_RM6,SUB5_HV_B,140,3C_70mm2_XLPE_SWA,0.75,Substaation 10,TRUE,
+SUB11A_RM6,SUB21A_RM6,60,3C_70mm2_XLPE_SWA,0.75,Substation 11A,TRUE,Normally Open HV link to SUB11B_RM6
+SUB11B_RM6,SUB21B_RM6,60,3C_70mm2_XLPE_SWA,0.75,Substation 11B,TRUE,
+SUB12_RM6,SUB18_RM6,200,,0.75,Substation 12,TRUE,Normally Open HV link to SUB24_RM6
+SUB14_HV_A,slack,705,3Cx1C_300mm2_EPR,6,Substation 14,TRUE,Normally Open link to SUB14_HV_B
+SUB14_HV_B,slack,705,3Cx1C_300mm2_EPR,6,Substation 14,TRUE,Normally Open link to SUB14_HV_A
+SUB15_RM6,slack,124,3Cx1C_300mm2_EPR,0.8,Substation 15,TRUE,
+SUB16_RM6,SUB25A_RM6,307,JOIN24_LINE,0.5,Substation 16,TRUE,
+SUB17_RM6,slack,312,3C_70mm2_XLPE_SWA,0.8,Substastion 17,TRUE,
+SUB18_RM6,SUB10_RM6,65,,0.8,Substation 18,TRUE,
+SUB19A_RM6,slack,400,3C_70mm2_XLPE_SWA,1,Substation 19A,TRUE,
+SUB19B_RM6,slack,400,3C_70mm2_XLPE_SWA,1,Substation 19B,TRUE,Normally Open HV link to SUB19A_RM6
+SUB20_RM6,SUB8_RM6,253,3C_70mm2_XLPE_SWA,0.8,Substation 20,TRUE,Future cable to slack bus
+SUB21A_RM6,slack,185,3C_70mm2_XLPE_SWA,1,Substation 21A,TRUE,Normally Open HV link to SUB21B_RM6
+SUB21B_RM6,slack,185,3C_70mm2_XLPE_SWA,1,Substation 21B,TRUE,
+SUB22A_RM6,SUB26_RM6,275,3C_300mm2_XLPE_SWA,1.5,Substation 22A,TRUE,Normally Open HV link to SUB22B_RM6
+SUB22B_RM6,SUB23_RM6,370,3C_300mm2_XLPE_SWA,1.5,Substation 22B,TRUE,
+SUB23_RM6,slack,130,JOIN4_LINE,0.8,Substation 23,TRUE,
+SUB24_RM6,SUB7_HV_B,387,,1,Substation 24,TRUE,
+SUB25A_RM6,slack,335,JOIN22_JOIN23_LINE,1,Substation 25A,TRUE,
+SUB25B_RM6,slack,435,JOIN25_JOIN26_LINE,0.8,Substation 25,TRUE,Normally Open Link to SUB25A_RM6
+SUB26_RM6,SUB15_RM6,95,JOIN3_LINE,1,Substation 26,TRUE,Normally Closed HV link to SUB22A_RM6
+SUB27A_RM6,slack,710,JOIN5_JOIN34_JOIN33_LINE,1,Substation 27A,TRUE,
+SUB27B_RM6,slack,715,,1,Substation 27B,TRUE,
+SUB29A_RM6,SUB27A_RM6,100,,1,Substation 29A,TRUE,
+SUB29B_RM6,SUB27B_RM6,100,,1,Substation 29B,TRUE,Normally Open HV link to SUB29A_RM6
+SUB30_RM6,SUB31_RM6,5,3C_300mm2_XLPE_SWA,1,Substation 30,TRUE,
+SUB31_RM6,SUB16_RM6,85,3C_300mm2_XLPE_SWA,1,Substation 31,TRUE,
+SUB3_HV_A,slack,540,,1,Substation 3,TRUE,Normally Open HV link to SUB3_HV_B
+SUB3_HV_B,slack,540,,1,Substation 3,TRUE,
+SUB4_RM6,SUB3_HV_B,405,,0.8,Substation 4,TRUE,
+SUB5_HV_A,SUB19A_RM6,40,JOIN30_LINE,1,Substation 5,TRUE,Normally Open HV link to SUB5_HV_B
+SUB5_HV_B,SUB19B_RM6,40,3C_70mm2_XLPE_SWA,0.5,Substation 5,TRUE,
+SUB7_HV_A,SUB29A_RM6,55,,2,Substation 7,TRUE,
+SUB7_HV_B,SUB29B_RM6,50,,1,Substation 7,TRUE,Normally Open HV link to SUB7_HV_A
+SUB8_RM6,SUB17_RM6,315,JOIN1_JOIN2_LINE,0.75,Substation 8,TRUE,
+SUB9_RM6,SUB3_HV_A,500,,0.5,Substation 9,TRUE,Normally Open HV link to SUB4_RM6
+SUB11A_RM6,SUB11B_RM6,5,3C_70mm2_XLPE_SWA,,Substation 11A,FALSE,Normally Open
+SUB21A_RM6,SUB21B_RM6,5,3C_70mm2_XLPE_SWA,,Substaion 21A,FALSE,Normally Open
+SUB22A_RM6,SUB22B_RM6,10,3C_300mm2_XLPE_SWA,,Substaion 22,FALSE,Normally Open
+SUB12_RM6,SUB24_RM6,155,3C_70mm2_XLPE_SWA,,Substation 12,FALSE,Normally Open
+SUB19A_RM6,SUB19B_RM6,5,3C_70mm2_XLPE_SWA,,Substation 19,FALSE,Normally Open
+SUB25B_RM6,SUB25A_RM6,135,3C_70mm2_XLPE_SWA,,Substation 19,FALSE,Normally Open
+SUB29A_RM6,SUB29B_RM6,5,3C_70mm2_XLPE_SWA,,Substation 29,FALSE,Normally Open
+SUB4_RM6,SUB9_RM6,340,3C_70mm2_XLPE_SWA,,Substation 4,FALSE,Normally Open
