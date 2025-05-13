@@ -1,0 +1,3 @@
+[submodule "dependencies/matpower"]
+	path = dependencies/matpower
+	url = https://github.com/angusbarnes/matpower
