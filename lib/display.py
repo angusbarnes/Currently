@@ -1,4 +1,6 @@
 import math
+import os
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
 from lib.data_types import BusNode
 
