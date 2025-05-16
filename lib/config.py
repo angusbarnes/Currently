@@ -1,6 +1,6 @@
 import sys
 import os
-import utils
+import lib.utils as utils
 
 try:
     import tomllib
@@ -15,8 +15,12 @@ _default_config = {
     "target-voltage": 11000,
 }
 
+def SetPathParamResolves(resolver_map: dict):
+    pass
 
-def _parse_scenario_file(scenario_path):
+
+
+def _parse_scenario_file(scenario_path, resolvers = None):
     if not os.path.isfile(scenario_path):
         raise FileNotFoundError(f"Scenario file not found: {scenario_path}")
     with open(scenario_path, "rb") as f:
@@ -43,7 +47,7 @@ def _parse_params(args, base_config):
     return config
 
 
-def load_config(args):
+def load_config(args, resolvers = None):
     config = _default_config.copy()
 
     if "--scenario" in args:
@@ -51,7 +55,7 @@ def load_config(args):
         if scenario_index >= len(args):
             raise ValueError("Expected a filename after --scenario")
         scenario_path = args[scenario_index]
-        config.update(_parse_scenario_file(scenario_path))
+        config.update(_parse_scenario_file(scenario_path, resolvers))
 
     config = _parse_params(args, config)
     return config

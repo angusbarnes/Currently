@@ -1,6 +1,6 @@
-from envparser import load_env
+from lib.envparser import load_env
 from tqdm import tqdm
-from load_characterisation import characterise_load, create_load_report
+from lib.load_characterisation import characterise_load, create_load_report
 from contextlib import redirect_stdout
 
 
