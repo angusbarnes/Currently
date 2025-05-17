@@ -1,11 +1,19 @@
 import math
 import os
+import logging
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
-import pygame
+try:
+    import pygame
+    PYGAME_AVAILABLE = True
+except ImportError:
+    logging.error("Pygame is not installed. Display features will be disabled.")
+    PYGAME_AVAILABLE = False
+
 from lib.data_types import BusNode
 
 
 def layout_tree(node: BusNode, x, y, spacing_x, spacing_y, positions, depth=0):
+
     positions[node.name] = (x, y)
     num_children = len(node.children)
     if num_children == 0:
@@ -69,6 +77,11 @@ def draw_tree(screen, font, node: BusNode, positions, offset_x, offset_y, zoom):
 
 
 def run_visualization(root):
+
+    if not PYGAME_AVAILABLE:
+        logging.error("Visualisation is not available unless pygame is installed.")
+        return
+
     pygame.init()
     screen = pygame.display.set_mode((1900, 980))
     pygame.display.set_caption("Substation Tree Visualization")
