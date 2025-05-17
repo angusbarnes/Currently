@@ -1,5 +1,6 @@
 import sqlite3
 import pandas as pd
+import os
 import numpy as np
 from lib.utils import report_mean_median_dev
 from lib.report_generation import export_excel_report
@@ -18,6 +19,35 @@ class CharacterisedLoad:
 
     def get_number_of_data_points(self):
         return len(self.frame)
+    
+    # Get the max demands without including the 99th percentile results
+    # this removed the chance for outliers from creating inaccurate forecasts.
+    # We also return the timestamps for use with the load characteriser
+    def get_max_demands(self):
+        df = self.frame
+        active = df["power_active"].dropna()
+        reactive = df["power_reactive"].dropna()
+
+        active_thresh = np.percentile(active, 99)
+        reactive_thresh = np.percentile(reactive, 99)
+
+        filtered = df[
+            (df["power_active"] <= active_thresh) &
+            (df["power_reactive"] <= reactive_thresh)
+        ]
+
+        active_row = filtered.loc[filtered["power_active"].idxmax()]
+        reactive_row = filtered.loc[filtered["power_reactive"].idxmax()]
+
+        return {
+            "max_active": active_row["power_active"],
+            "active_timestamp": active_row["timestamp"],
+            "max_reactive": reactive_row["power_reactive"],
+            "reactive_timestamp": reactive_row["timestamp"]
+        }
+    
+    def get_absolute_maximums(self):
+        return (np.max(self.frame["power_active"]), np.max(self.frame["power_reactive"]))
 
     def get_seasonal_stats(self):
         spring_filtered = self.frame[self.frame["timestamp"].dt.month.isin([9, 10, 11])]
@@ -70,6 +100,12 @@ class CharacterisedLoad:
 
     def get_date_range(self) -> tuple[str, str]:
         return (np.min(self.frame["timestamp"]), np.max(self.frame["timestamp"]))
+    
+    def get_average_loads(self):
+        pload = np.nanmean(self.frame["power_active"])
+        qload = np.nanmean(self.frame["power_reactive"])
+
+        return pload, qload
 
 
 def characterise_load(database_path: str, substation_id: str):
@@ -133,8 +169,9 @@ def create_load_report(load_data: CharacterisedLoad):
         .idxmin()
     ]
 
-    pload = np.nanmean(load_data.get_main_dataframe()["power_active"])
-    qload = np.nanmean(load_data.get_main_dataframe()["power_reactive"])
+    os.makedirs("./out/data", exist_ok=True)
+
+    pload, qload = load_data.get_average_loads()
 
     export_excel_report(
         {
@@ -154,7 +191,7 @@ def create_load_report(load_data: CharacterisedLoad):
             "90pload": row_90th_active["power_active"],
             "90qload": row_90th_reactive["power_reactive"],
         },
-        output_path=f"{load_data.substation_id}_load_summary.xlsx",
+        output_path=f"out/data/{load_data.substation_id}_load_summary.xlsx",
     )
 
     return pload, qload
