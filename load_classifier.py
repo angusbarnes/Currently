@@ -35,25 +35,23 @@ def get_characterised_loads():
         load = characterise_load(ENV['DATABASE_PATH'], id)
         pload, qload = load.get_average_loads()
 
-
         pload_total += pload
         qload_total += qload
 
         demands = load.get_max_demands()
         max_p, max_q = load.get_absolute_maximums()
 
-        corresponding_site_active_load = lookup_or_next_closest(site_data_sorted, demands['active_timestamp'])
-        corresponding_site_reactive_load = lookup_or_next_closest(site_data_sorted, demands['reactive_timestamp'])
-        active_ts = corresponding_site_active_load["timestamp"]
-        reactive_ts = corresponding_site_reactive_load["timestamp"]
+        corresponding_site_apparent_load = lookup_or_next_closest(site_data_sorted, demands['apparent_timestamp'])
 
-        site_active = corresponding_site_active_load["ANSTO TOTAL_KW"]
-        site_reactive = corresponding_site_reactive_load["ANSTO TOTAL_KVAR"]
+        apparent_ts = corresponding_site_apparent_load["timestamp"]
 
-        if (active_ts != demands['active_timestamp']) or (reactive_ts != demands['reactive_timestamp']):
-            logging.warning(f"Substation {id}: Missed max demand interval, using next closest fallback")
+        site_active = corresponding_site_apparent_load["ANSTO TOTAL_KW"]
+        site_reactive = corresponding_site_apparent_load["ANSTO TOTAL_KVAR"]
 
-        results[id] = (demands["max_active"]/site_active,demands["max_reactive"]/site_reactive, max_p, max_q)
+        if (apparent_ts != demands['apparent_timestamp']):
+            logging.warning(f"Substation {id}: Missed max demand interval, using next closest fallback. Looking for {demands['apparent_timestamp']}, found {apparent_ts}")
+
+        results[id] = (demands["max_apparent"][0]/site_active,demands["max_apparent"][1]/site_reactive, max_p, max_q)
 
     max_site_p = np.max(site_data_sorted["ANSTO TOTAL_KW"])
     max_site_q = np.max(site_data_sorted["ANSTO TOTAL_KVAR"])

@@ -25,23 +25,23 @@ class CharacterisedLoad:
     # We also return the timestamps for use with the load characteriser
     def get_max_demands(self):
         df = self.frame
-        active = df["power_active"].dropna()
-        reactive = df["power_reactive"].dropna()
+        apparent = df["power_apparent"].dropna()
 
-        active_thresh = np.percentile(active, 99)
-        reactive_thresh = np.percentile(reactive, 99)
+        apparent_thresh = np.percentile(apparent, 99)
 
         filtered = df[
-            (df["power_active"] <= active_thresh) &
-            (df["power_reactive"] <= reactive_thresh)
+            (df["power_apparent"] <= apparent_thresh)
         ]
 
-        active_row = filtered.loc[filtered["power_active"].idxmax()]
-        reactive_row = filtered.loc[filtered["power_reactive"].idxmax()]
+        active_row = filtered.loc[filtered["power_active"].abs().idxmax()]
+        reactive_row = filtered.loc[filtered["power_reactive"].abs().idxmax()]
+        apparent_row = filtered.loc[filtered["power_apparent"].abs().idxmax()]
 
         return {
             "max_active": active_row["power_active"],
             "active_timestamp": active_row["timestamp"],
+            "max_apparent" : (apparent_row["power_active"], apparent_row["power_reactive"]),
+            "apparent_timestamp": apparent_row["timestamp"],
             "max_reactive": reactive_row["power_reactive"],
             "reactive_timestamp": reactive_row["timestamp"]
         }
@@ -114,7 +114,7 @@ def characterise_load(database_path: str, substation_id: str):
 
     database_connection = sqlite3.connect(database_path)
     df = pd.read_sql_query(
-        f"SELECT * FROM modbus_logs WHERE device_name = {substation_id}",
+        f"SELECT * FROM modbus_logs WHERE device_name = {substation_id} AND timestamp < \"2024-12-01 00:00:00\"",
         database_connection,
     )
 

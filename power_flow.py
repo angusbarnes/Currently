@@ -41,7 +41,7 @@ from lib.utils import string_to_bool, safe_str_to_float, resolve_relative_path_f
 from lib.config import CONFIG
 from load_classifier import get_characterised_loads
 import time
-from lib.reporting import report_loading_conditions
+from lib.reporting import report_loading_conditions, report_bus_voltages, report_line_loadings
 
 #TODO: Implement this feature correctly
 # lib.config.SetPathParamResolvers(
@@ -109,11 +109,10 @@ with open(resolve_relative_path_from_config(CONFIG["network-file"], "./config/ba
         
         _p = safe_str_to_float(p)
         _q = safe_str_to_float(q)
+        _characterised = False
 
         # We must have both values defined for it to be valid
         assert (not _p) == (not _q)
-
-
 
         if bus not in bus_nodes:
 
@@ -124,19 +123,26 @@ with open(resolve_relative_path_from_config(CONFIG["network-file"], "./config/ba
 
                 if substation_key not in loading_percents:
                     logging.error(f"Unknown substation key provided for {bus}. DATA_LINK_KEY={substation_key}. Defaulting to defined P,Q load from file.")
+                else:
+                    if CONFIG["use-traditional"]:
+                        _p = loading_percents[substation_key][2]
+                        _q = loading_percents[substation_key][3]
+                    else:
+                        _p = site_maximums[0] * loading_percents[substation_key][0]
+                        _q = site_maximums[1] * loading_percents[substation_key][1]
+                    logging.info(f"Linked {bus} with load characterisation. DATA_LINK_KEY={substation_key}. Characterised load: P={site_maximums[0] * loading_percents[substation_key][0]:.2f} kW, P={site_maximums[1] * loading_percents[substation_key][1]:.2f} kVAr")
                     accounted_p_kw += _p
                     accounted_q_kvar += _q
-                else:
-                    accounted_p_kw += site_maximums[0] * loading_percents[substation_key][0]
-                    accounted_q_kvar += site_maximums[0] * loading_percents[substation_key][1]
-                    logging.info(f"Linked {bus} with load characterisation. DATA_LINK_KEY={substation_key}. Characterised load: P={site_maximums[0] * loading_percents[substation_key][0]:.2f} kW, P={site_maximums[1] * loading_percents[substation_key][1]:.2f} kVAr")
+                    _characterised = True
+
 
             bus_nodes[bus] = BusNode(
                 name=bus,
                 rating=safe_str_to_float(rating),
                 substation=substation_key,
                 characterised_load_kw=_p,
-                characterised_load_kvar=_q
+                characterised_load_kvar=_q,
+                characterised=_characterised
             )
 
         bus_nodes[bus].feeders.append(feeder_def)
@@ -196,7 +202,7 @@ for node in bus_nodes.values():
 
     if node.rating > 0:
 
-        if node.characterised_load_kvar and node.characterised_load_kw:
+        if node.characterised:
             pp.create_load(net, bus=node.pp_bus, p_mw=node.characterised_load_kw/1000, q_mvar=node.characterised_load_kvar/1000)
         else:
             pp.create_load(net, bus=node.pp_bus, p_mw=unaccounted_load_kw/1000 * node.rating/cumulative_rating, q_mvar=unaccounted_load_kvar/1000 * node.rating/cumulative_rating)
@@ -214,6 +220,9 @@ start = time.time()
 pp.runpp(net)
 stop = time.time()
 
+report_loading_conditions(site_maximums, loading_percents)
+report_bus_voltages(net, 3)
+report_line_loadings(net, 3)
 
 
 bus_results = net.res_bus.copy()
@@ -239,7 +248,5 @@ savemat("out/matpower_case.mat", {"mpc": mpc})
 
 if CONFIG["show"]:
     run_visualization(tree_elements['slack'])
-
-report_loading_conditions(site_maximums, loading_percents)
 
 print(f"Main load flow evaluation time = {stop-start:.3f} seconds.")

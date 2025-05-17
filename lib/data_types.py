@@ -20,6 +20,7 @@ class BusNode:
     pp_bus: Optional[int] = None  # Will store the pandapower bus index
     characterised_load_kw: float = None
     characterised_load_kvar: float = None
+    characterised: bool = False
 
     def add_child(self, child_bus):
         self.children.append(child_bus)
