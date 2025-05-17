@@ -110,19 +110,6 @@ def characterise_load(database_path: str, substation_id: str):
 
     load.set_main_dataframe(df)
 
-    # str_print("======================================================================================================")
-    # str_print("                                 LOAD CHARACTERISATION REPORT")
-    # str_print(f"Substation ID: {substation_id}")
-    # str_print(f"Data Points: {len(df)}")
-    # str_print(f"Date Range: {np.min(df['timestamp'])} -> {np.max(df['timestamp'])}")
-    # str_print("======================================================================================================")
-    # str_print(df[["load_a", "load_b", "load_c", "calc_load", "power_active", "power_reactive", "power_apparent", "err %"]])
-    # str_print("======================================================================================================")
-
-    # report_mean_median_dev("Active Power", df["power_active"])
-    # report_mean_median_dev("Reactive Power", df["power_reactive"])
-    # report_mean_median_dev("Apparent Power", df["power_apparent"])
-
     return load
 
 
