@@ -111,26 +111,6 @@ def export_excel_report(data, output_path="load_report.xlsx"):
         # Insert the chart into the worksheet
         stats_ws.insert_chart(f"H{len(monthly_stats)+3}", energy_chart)
 
-        # # Plot chart and insert it as image
-        # fig, ax = plt.subplots(figsize=(8, 4))
-
-        #         # Ensure mean is numeric
-        # monthly_stats["mean"] = pd.to_numeric(monthly_stats["mean"], errors="coerce")
-
-        # # Convert year_month to string or datetime (whichever you prefer)
-        # monthly_stats["year_month"] = monthly_stats["year_month"].astype(str)
-
-        # sns.lineplot(x="year_month", y="mean", data=monthly_stats, marker="o", ax=ax)
-        # ax.set_title("Monthly Mean Apparent Power")
-        # ax.tick_params(axis='x', rotation=45)
-
-        # img_data = BytesIO()
-        # fig.savefig(img_data, format='png', bbox_inches='tight')
-        # img_data.seek(0)
-        # plt.close(fig)
-
-        # stats_ws.insert_image("G2", "chart.png", {"image_data": img_data, "x_scale": 0.8, "y_scale": 0.8})
-
 
 def plot_monthly_apparent_power(df):
     df = df.copy()
