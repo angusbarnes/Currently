@@ -1,0 +1,287 @@
+commit c6501cb42bb13a1c9eb4cd5ed592377a4ea81674
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Sun May 18 01:20:36 2025 +1000
+
+    change default parameters for base scenario
+
+commit 92b6f87c355982e1a9020aabadb38149cdf3493d
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Sun May 18 01:20:25 2025 +1000
+
+    added pretty printing for results
+
+commit 25c9bdf08f6fe49eee6644df69be8c58b71174f8
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Sun May 18 01:20:14 2025 +1000
+
+    updated load classification
+
+commit 2f502564af896ceb7109240db12f8ee8e9173a9c
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Sun May 18 01:19:51 2025 +1000
+
+    Fixed bug related to cable rating
+
+commit 0d7f80196894ad465eb3332e2ea81d98f6fd00aa
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Sat May 17 22:45:59 2025 +1000
+
+    Further refactoring
+
+commit 0b1fd4f0a456d3940638c507de69d515ac5dd25a
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Sat May 17 22:45:38 2025 +1000
+
+    Added soft handling of pygame dependencies to make it optional
+
+commit de11ae815cd0ee8a2209895e640437d058c49edc
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Sat May 17 22:44:58 2025 +1000
+
+    Formalised load classifier
+
+commit be27253919ffb436b73598356c39d40fabd1b785
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Sat May 17 20:19:40 2025 +1000
+
+    Further formatting fixes
+
+commit bd9fc714f319c0503983fc5f771ff9a3ec55f1d7
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Sat May 17 20:19:15 2025 +1000
+
+    remove redundant comments
+
+commit 149a77e03dd37ca47f31a403331bc2035c1e4ac6
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Fri May 16 18:22:13 2025 +1000
+
+    Remove pygame logging from startup call
+
+commit 0ab9a79a8aab75544328a6ab8e511786de88b2e2
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Fri May 16 12:58:55 2025 +1000
+
+    Major code clean up and refactor
+
+commit fdc0d82515b73ef7e9f23899c57e1fef79fcf814
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Wed May 14 00:23:24 2025 +1000
+
+    Add meshed network reference image
+
+commit a75552f6bac982f98d0107108d7e6186389adccd
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Wed May 14 00:14:51 2025 +1000
+
+    Dynamic load allocation
+
+commit edea4265f5360b9ef0daa3fbe9e38336990c79c6
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Tue May 13 23:34:28 2025 +1000
+
+    Updated base scenario
+
+commit 7764fce4cd2b28372b9abb8fe3814a7d9c20df38
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Tue May 13 23:33:56 2025 +1000
+
+    Add script for performance monitoring
+
+commit aea7a08ad87c58e1831bf535f9ece34f2c76b7f9
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Tue May 13 20:10:36 2025 +1000
+
+    Added dev branch of matpower as dependency
+
+commit f6d8cb404a167480dba344f9d1d7615c78d5c6ba
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Tue May 13 17:47:58 2025 +1000
+
+    Added dynamic scenario config files
+
+commit f88e79e2f2840a7ab435ff36825d7e014d4385c7
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Tue May 13 17:42:19 2025 +1000
+
+    Result file generation
+
+commit 2a087e73ccec268ca10736532eb54fec1e1c4b11
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Tue May 13 17:14:47 2025 +1000
+
+    Fix bug with visual display of small cables
+
+commit 9b2e785dfa61936b074a76d1fb5eab78e1b16e6e
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Tue May 13 17:14:20 2025 +1000
+
+    Add all normally open links
+
+commit 8c78762920095244ffecdb9e1a425b0fc01ed57c
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Fri May 9 17:49:56 2025 +1000
+
+    Moved dybamic config to its own module to allow for global access
+
+commit 250076f0ccddc869b1fc5176133350bde97755be
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Fri May 9 17:45:53 2025 +1000
+
+    Added support for variable config
+
+commit 8ec72184a7872e71760ebff22a645b97df1a2519
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Fri May 9 17:23:44 2025 +1000
+
+    Added support for inactive cable links
+
+commit 70a51c73bf56421c1696e184f6c4aa2f4cb90a92
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Fri May 9 17:23:12 2025 +1000
+
+    Add support for MATPOWER case generation
+
+commit d851d84657301996fa3d417ad43a81579ac21ca3
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Fri May 9 14:04:13 2025 +1000
+
+    Removed outdated code comments
+
+commit 03f067d934ec775322536e9885a8a382447e5583
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Fri May 9 14:02:50 2025 +1000
+
+    Remove redudant dependencies and left over code from removed PDF generation
+
+commit cd9e9b301c0f793204d959b049603af374a250b4
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Fri May 9 14:00:49 2025 +1000
+
+    Add support for mesh networks and refactor code
+
+commit ea90a3c5bc3985c28e5f60c3671b7dbbf286feac
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Fri May 9 13:42:41 2025 +1000
+
+    Minor fixes
+
+commit eae46e5e2c114dbeb00d7bb0cadb67c23156f676
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Tue May 6 22:27:05 2025 +1000
+
+    Updates to network visualisation and initial load flow implementation
+
+commit 01f300fdbb213442f1fb07db59178566fa55a371
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Thu May 1 15:56:05 2025 +1000
+
+    Early stage network representation
+
+commit d9603354e8ad3908b69f6c099b36fae3bed8cc82
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Fri Apr 25 23:10:59 2025 +1000
+
+    Updated load characterisation using excel report generation
+
+commit d102350aff58d53f51c6b4525b6503a669bc4c49
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Sun Apr 13 21:49:54 2025 +1000
+
+    Updates to auto report gen
+
+commit 3ff69d39da9d02f8cea4f19e32c295848d8a1369
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Sun Apr 13 21:49:27 2025 +1000
+
+    Attempts at automagic report generation\
+
+commit f61773e43ceefca82b2ec2b7acd451a31168cc80
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Tue Apr 8 10:36:52 2025 +1000
+
+    Update load characterisation script
+
+commit 823659473ed2a181ac23a0e87ec688c6e7654251
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Fri Apr 4 11:24:54 2025 +1100
+
+    Include a list of substation ID's for data referencing
+
+commit 61e0ede0ec4c39bc6b3ba103b303634904a6db12
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Fri Apr 4 11:24:28 2025 +1100
+
+    Add missing utils dependency that simplify pandas summaries
+
+commit 729ebb1e44b003bd163aef501e2dc393acca4018
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Fri Apr 4 11:23:52 2025 +1100
+
+    Add load characterisation capability
+
+commit 1f63b346507bc7152cde428aeabe39239d12add1
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Thu Apr 3 21:24:56 2025 +1100
+
+    Ignore vscode settings folder
+
+commit 44443494a89470145a710be627720d1eaad2b896
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Thu Apr 3 17:16:19 2025 +1100
+
+    Updated requirements.txt
+
+commit a5e9dedc9c1b0dd76e31da2b3233a61bc22bab73
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Thu Apr 3 17:16:00 2025 +1100
+
+    Added .env file parser
+
+commit 495d7b2aad5add2176b78d352e3fa30b866fef9a
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Thu Apr 3 14:48:34 2025 +1100
+
+    Add gitignore for sensitive local files
+
+commit 81eaf21835ad2649fbd658053e1109c35bf42bde
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Wed Apr 2 15:17:09 2025 +1100
+
+    Format changes to basic power flow test
+
+commit ddf2b1a2e5d58728653b2f035f5a321ff7b8d024
+Author: angusbarnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Mon Mar 31 16:56:39 2025 +1100
+
+    Added markup tool for client
+
+commit 436d27de6779a70fb8f4401ee1f74ebb630b81cc
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Mon Mar 31 15:29:52 2025 +1100
+
+    Testing new GPG key :)
+
+commit 7e13b9983182dd0121897821a954249440422e29
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Mon Mar 31 15:28:13 2025 +1100
+
+    Initialised Godot Runtime
+
+commit 2d29eea8c290a12a9ed9d821c7f56b015bf65454
+Author: angusbarnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Mon Mar 31 12:45:54 2025 +1100
+
+    Add requirements.txt
+
+commit 7e221efff3de77b8a47de57f61f956f0fb781235
+Author: angusbarnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Mon Mar 31 11:41:54 2025 +1100
+
+    Git, Venv and Pandapower set up
+
+commit b1101aed6edb54088372d9b6a6084c4836339699
+Author: Angus Barnes <38348730+angusbarnes@users.noreply.github.com>
+Date:   Fri Mar 28 13:22:11 2025 +1100
+
+    Initial commit
