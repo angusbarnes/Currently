@@ -15,6 +15,11 @@ run/main_scene="res://main.tscn"
 config/features=PackedStringArray("4.4", "GL Compatibility")
 config/icon="res://icon.svg"
 
+[autoload]
+
+SubstationManager="*res://SubstationManager.gd"
+SelectionManager="*res://SelectionManager.gd"
+
 [input]
 
 move_left={
