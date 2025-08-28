@@ -30,15 +30,17 @@ func _toggle_selection():
 
 func _default_style() -> StyleBoxFlat:
 	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.15, 0.15, 0.15) # grey background
+	sb.bg_color = Color(0.104, 0.104, 0.104) # grey background
+	sb.set_corner_radius_all(12)
 	sb.set_border_width_all(0)
 	sb.set_expand_margin_all(0)
 	return sb
 
 func _selected_style() -> StyleBoxFlat:
 	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.15, 0.15, 0.15)
+	sb.bg_color = Color(0.104, 0.104, 0.104)
 	sb.set_border_width_all(3.0)
+	sb.set_corner_radius_all(12)
 	sb.set_expand_margin_all(3.0)
 	sb.border_color = Color.YELLOW
 	return sb
@@ -60,6 +62,7 @@ func _ready():
 	assert(substation_id.length() != 0, "Substation ID cannot be empty!")
 	SubstationManager.register_tile(substation_id, self)
 	substation_label.text = substation_id
+	
 	
 func get_last_interval() -> Dictionary:
 	return last_data
