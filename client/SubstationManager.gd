@@ -91,7 +91,6 @@ func _handle_message(msg: String):
 	if res.has("device_name"):
 		var id = res["device_name"]
 		if tiles.has(id):
-			print("Updating substation: " + id)
 			tiles[id].update_data(res)
 		else:
 			print("[WS][WARN] Got data for unknown substation ID=%s" % id)

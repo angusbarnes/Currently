@@ -45,6 +45,7 @@ func _selected_style() -> StyleBoxFlat:
 	
 func update_online_status(online: String):
 		var sb = StyleBoxFlat.new()
+		sb.set_corner_radius_all(30)
 		
 		if online == "BAD":
 			sb.bg_color = Color.ORANGE;
@@ -59,12 +60,17 @@ func _ready():
 	assert(substation_id.length() != 0, "Substation ID cannot be empty!")
 	SubstationManager.register_tile(substation_id, self)
 	substation_label.text = substation_id
+	
+func get_last_interval() -> Dictionary:
+	return last_data
 
 func has_safe_value(dict: Dictionary, key: String):
 	return dict.has(key) and dict[key] != null
 
 var last_voltage: int = 0
+var last_data: Dictionary = {}
 func update_data(data: Dictionary):
+	last_data = data
 	if has_safe_value(data, "voltage_an"):
 		if data["voltage_an"] > last_voltage:
 			voltage_label.add_theme_color_override("font_color", Color.GREEN)

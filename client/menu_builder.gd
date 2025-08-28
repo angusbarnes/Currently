@@ -20,3 +20,8 @@ func _ready():
 		print("Collected config: ", cfg)
 	)
 	add_child(save_btn)
+	
+	SelectionManager.selection_changed.connect(_on_object_selection_changed)
+	
+func _on_object_selection_changed(tile):
+	print("Selection changed")

@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://bch3nb2j1ew0i"]
+[gd_scene load_steps=14 format=3 uid="uid://bch3nb2j1ew0i"]
 
 [ext_resource type="Script" uid="uid://clpxcdjb33jvx" path="res://UI/camera_controller.gd" id="1_h2yge"]
 [ext_resource type="Script" uid="uid://crsre26wgpos2" path="res://Canvas.gd" id="1_hxd7n"]
@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" uid="uid://ct8afd8vrm5il" path="res://subpanel.tscn" id="6_5vw27"]
 [ext_resource type="Script" uid="uid://dsa8nx5mock2p" path="res://menu_builder.gd" id="8_4c57u"]
 [ext_resource type="Script" uid="uid://wopa5t4fucca" path="res://LineTile.gd" id="9_kek77"]
+[ext_resource type="Script" uid="uid://cpg8c2voyn7b2" path="res://AdvancedStatsDisplay.gd" id="10_efxa6"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_5vw27"]
 
@@ -72,74 +73,116 @@ theme_override_colors/font_color = Color(0, 0, 0, 1)
 [node name="SubstationRoot" type="Node" parent="."]
 unique_name_in_owner = true
 
+[node name="subpanel11" parent="SubstationRoot" instance=ExtResource("6_5vw27")]
+offset_left = -195.0
+offset_top = -306.0
+offset_right = -57.0
+offset_bottom = -193.0
+substation_id = "100900"
+
+[node name="subpanel12" parent="SubstationRoot" instance=ExtResource("6_5vw27")]
+offset_left = -43.0
+offset_top = -306.0
+offset_right = 100.0
+offset_bottom = -193.0
+substation_id = "101000"
+
+[node name="subpanel13" parent="SubstationRoot" instance=ExtResource("6_5vw27")]
+offset_left = -506.0
+offset_top = -79.0
+offset_right = -352.0
+offset_bottom = 52.0
+substation_id = "101500"
+
+[node name="subpanel14" parent="SubstationRoot" instance=ExtResource("6_5vw27")]
+offset_left = -339.0
+offset_top = -79.0
+offset_right = -177.0
+offset_bottom = 57.0
+substation_id = "101700"
+
+[node name="subpanel15" parent="SubstationRoot" instance=ExtResource("6_5vw27")]
+offset_left = 367.0
+offset_top = -292.0
+offset_right = 509.0
+offset_bottom = -171.0
+substation_id = "102702"
+
+[node name="subpanel16" parent="SubstationRoot" instance=ExtResource("6_5vw27")]
+offset_left = 213.0
+offset_top = -11.0
+offset_right = 356.0
+offset_bottom = 99.0
+substation_id = "102901"
+
+[node name="subpanel17" parent="SubstationRoot" instance=ExtResource("6_5vw27")]
+offset_left = 371.0
+offset_top = -13.0
+offset_right = 513.0
+offset_bottom = 102.0
+substation_id = "102902"
+
 [node name="subpanel3" parent="SubstationRoot" instance=ExtResource("6_5vw27")]
-offset_left = -281.0
-offset_top = -88.0
-offset_right = 26.0
-offset_bottom = 9.0
+offset_left = -333.0
+offset_top = 100.0
+offset_right = -170.0
+offset_bottom = 234.0
 substation_id = "102300"
 
 [node name="subpanel6" parent="SubstationRoot" instance=ExtResource("6_5vw27")]
-offset_left = 398.0
-offset_top = -69.0
-offset_right = 513.0
-offset_bottom = 27.0
+offset_left = 212.0
+offset_top = -154.0
+offset_right = 356.0
+offset_bottom = -39.0
 substation_id = "101901"
 
 [node name="subpanel7" parent="SubstationRoot" instance=ExtResource("6_5vw27")]
-offset_left = 563.0
-offset_top = -71.0
-offset_right = 678.0
-offset_bottom = 25.0
+offset_left = 366.0
+offset_top = -154.0
+offset_right = 510.0
+offset_bottom = -39.0
 substation_id = "101902"
 
 [node name="subpanel8" parent="SubstationRoot" instance=ExtResource("6_5vw27")]
-offset_left = -423.0
-offset_top = 320.0
-offset_right = -278.0
-offset_bottom = 441.0
+offset_left = -507.0
+offset_top = 104.0
+offset_right = -362.0
+offset_bottom = 225.0
 substation_id = "102000"
 
 [node name="subpanel9" parent="SubstationRoot" instance=ExtResource("6_5vw27")]
-offset_left = -206.0
-offset_top = 318.0
-offset_right = -61.0
-offset_bottom = 439.0
+offset_left = -346.0
+offset_top = -304.0
+offset_right = -208.0
+offset_bottom = -193.0
 substation_id = "100800"
 
 [node name="subpanel10" parent="SubstationRoot" instance=ExtResource("6_5vw27")]
-offset_left = -452.0
-offset_top = 465.0
-offset_right = -307.0
-offset_bottom = 586.0
+offset_left = 213.0
+offset_top = 117.0
+offset_right = 358.0
+offset_bottom = 238.0
 substation_id = "102101"
 
 [node name="subpanel" parent="SubstationRoot" instance=ExtResource("6_5vw27")]
-offset_left = -405.0
-offset_top = -251.0
-offset_right = -260.0
-offset_bottom = -130.0
+offset_left = -155.0
+offset_top = -81.0
+offset_right = 6.0
+offset_bottom = 61.0
 substation_id = "101800"
 
-[node name="subpanel4" parent="SubstationRoot" instance=ExtResource("6_5vw27")]
-offset_left = -62.0
-offset_top = -250.0
-offset_right = 83.0
-offset_bottom = -129.0
-substation_id = "SS-103"
-
 [node name="subpanel2" parent="SubstationRoot" instance=ExtResource("6_5vw27")]
-offset_left = -231.0
-offset_top = -251.0
-offset_right = -86.0
-offset_bottom = -130.0
+offset_left = 213.0
+offset_top = -292.0
+offset_right = 358.0
+offset_bottom = -171.0
 substation_id = "102701"
 
 [node name="subpanel5" parent="SubstationRoot" instance=ExtResource("6_5vw27")]
-offset_left = -391.0
-offset_top = -14.0
-offset_right = -246.0
-offset_bottom = 107.0
+offset_left = 374.0
+offset_top = 114.0
+offset_right = 519.0
+offset_bottom = 235.0
 substation_id = "102102"
 
 [node name="Camera2D" type="Camera2D" parent="."]
@@ -270,7 +313,7 @@ offset_bottom = 12.0
 grow_vertical = 2
 text = "Substation 21"
 
-[node name="Panel" type="Panel" parent="CanvasLayer"]
+[node name="Panel" type="Panel" parent="CanvasLayer" node_paths=PackedStringArray("phase_a_label", "phase_b_label", "phase_c_label", "current_a_label", "current_b_label", "current_c_label")]
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
@@ -278,6 +321,56 @@ offset_left = -290.0
 offset_bottom = 160.0
 grow_horizontal = 0
 theme = ExtResource("5_lquwl")
+script = ExtResource("10_efxa6")
+phase_a_label = NodePath("Label")
+phase_b_label = NodePath("Label2")
+phase_c_label = NodePath("Label6")
+current_a_label = NodePath("Label3")
+current_b_label = NodePath("Label5")
+current_c_label = NodePath("Label4")
+
+[node name="Label4" type="Label" parent="CanvasLayer/Panel"]
+offset_left = 10.0
+offset_top = 123.0
+offset_right = 50.0
+offset_bottom = 146.0
+text = "teat"
+
+[node name="Label5" type="Label" parent="CanvasLayer/Panel"]
+offset_left = 11.0
+offset_top = 102.0
+offset_right = 51.0
+offset_bottom = 125.0
+text = "teat"
+
+[node name="Label3" type="Label" parent="CanvasLayer/Panel"]
+offset_left = 12.0
+offset_top = 82.0
+offset_right = 52.0
+offset_bottom = 105.0
+text = "teat"
+
+[node name="Label6" type="Label" parent="CanvasLayer/Panel"]
+offset_left = 12.0
+offset_top = 47.0
+offset_right = 52.0
+offset_bottom = 70.0
+text = "teat"
+
+[node name="Label2" type="Label" parent="CanvasLayer/Panel"]
+offset_left = 13.0
+offset_top = 25.0
+offset_right = 53.0
+offset_bottom = 48.0
+text = "teat"
+
+[node name="Label" type="Label" parent="CanvasLayer/Panel"]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 4.0
+offset_right = 54.0
+offset_bottom = 27.0
+text = "teat"
 
 [node name="Control" type="Control" parent="CanvasLayer"]
 layout_mode = 3

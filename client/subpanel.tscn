@@ -5,6 +5,10 @@
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_kek77"]
 bg_color = Color(0.103744, 0.103744, 0.103743, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tl2cf"]
 corner_radius_top_left = 30
@@ -45,6 +49,7 @@ offset_bottom = 20.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_tl2cf")
 
 [node name="voltage2" type="Label" parent="."]
+layout_mode = 0
 offset_left = 2.0
 offset_top = 25.0
 offset_right = 25.0
@@ -60,6 +65,7 @@ offset_bottom = 46.0
 text = "415V"
 
 [node name="current2" type="Label" parent="."]
+layout_mode = 0
 offset_left = 2.0
 offset_top = 46.0
 offset_right = 25.0
@@ -75,6 +81,7 @@ offset_bottom = 67.0
 text = "🌊"
 
 [node name="power2" type="Label" parent="."]
+layout_mode = 0
 offset_left = 3.0
 offset_top = 69.0
 offset_right = 26.0

@@ -1,8 +1,11 @@
 extends Node
 
+signal selection_changed(substation: SubstationTile)
+
 var selected_tiles: Array[SubstationTile] = []
 
 func select(tile: SubstationTile, ctrl_pressed: bool):
+	selection_changed.emit(tile)
 	if ctrl_pressed:
 		# Toggle
 		if tile in selected_tiles:
