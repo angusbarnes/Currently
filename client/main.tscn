@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://bch3nb2j1ew0i"]
+[gd_scene load_steps=13 format=3 uid="uid://bch3nb2j1ew0i"]
 
 [ext_resource type="Script" uid="uid://clpxcdjb33jvx" path="res://UI/camera_controller.gd" id="1_h2yge"]
 [ext_resource type="Script" uid="uid://crsre26wgpos2" path="res://Canvas.gd" id="1_hxd7n"]
@@ -8,6 +8,7 @@
 [ext_resource type="Script" uid="uid://cu3lvi3adivq0" path="res://ClickCatcher.gd" id="5_kek77"]
 [ext_resource type="Theme" uid="uid://dfvhqwvari6iw" path="res://base_theme.tres" id="5_lquwl"]
 [ext_resource type="PackedScene" uid="uid://ct8afd8vrm5il" path="res://subpanel.tscn" id="6_5vw27"]
+[ext_resource type="Script" uid="uid://dsa8nx5mock2p" path="res://menu_builder.gd" id="8_4c57u"]
 [ext_resource type="Script" uid="uid://wopa5t4fucca" path="res://LineTile.gd" id="9_kek77"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_5vw27"]
@@ -35,38 +36,117 @@ scale = Vector2(0.109396, 0.109396)
 texture = ExtResource("4_lquwl")
 
 [node name="ClickCatcher" type="Panel" parent="."]
-offset_left = -1244.0
-offset_top = -726.0
-offset_right = 1270.0
-offset_bottom = 1092.0
+offset_left = -1117.0
+offset_top = -505.0
+offset_right = 1397.0
+offset_bottom = 1313.0
 theme_override_styles/panel = SubResource("StyleBoxEmpty_5vw27")
 script = ExtResource("5_kek77")
 
-[node name="subpanel" parent="." instance=ExtResource("6_5vw27")]
+[node name="LineRoot" type="Node" parent="."]
+unique_name_in_owner = true
+
+[node name="Line2D" type="Line2D" parent="LineRoot" node_paths=PackedStringArray("line_label", "current_label")]
+position = Vector2(-322, -143)
+points = PackedVector2Array(-12, 11, -12, 200)
+default_color = Color(0.958966, 0.242522, 1, 1)
+script = ExtResource("9_kek77")
+line_id = "SS-104"
+line_label = NodePath("Label")
+current_label = NodePath("Label2")
+
+[node name="Label" type="Label" parent="LineRoot/Line2D"]
+offset_left = -3.0
+offset_top = 69.0
+offset_right = 37.0
+offset_bottom = 92.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+
+[node name="Label2" type="Label" parent="LineRoot/Line2D"]
+offset_left = -4.0
+offset_top = 88.0
+offset_right = 36.0
+offset_bottom = 111.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+
+[node name="SubstationRoot" type="Node" parent="."]
+unique_name_in_owner = true
+
+[node name="subpanel3" parent="SubstationRoot" instance=ExtResource("6_5vw27")]
+offset_left = -281.0
+offset_top = -88.0
+offset_right = 26.0
+offset_bottom = 9.0
+substation_id = "102300"
+
+[node name="subpanel6" parent="SubstationRoot" instance=ExtResource("6_5vw27")]
+offset_left = 398.0
+offset_top = -69.0
+offset_right = 513.0
+offset_bottom = 27.0
+substation_id = "101901"
+
+[node name="subpanel7" parent="SubstationRoot" instance=ExtResource("6_5vw27")]
+offset_left = 563.0
+offset_top = -71.0
+offset_right = 678.0
+offset_bottom = 25.0
+substation_id = "101902"
+
+[node name="subpanel8" parent="SubstationRoot" instance=ExtResource("6_5vw27")]
+offset_left = -423.0
+offset_top = 320.0
+offset_right = -278.0
+offset_bottom = 441.0
+substation_id = "102000"
+
+[node name="subpanel9" parent="SubstationRoot" instance=ExtResource("6_5vw27")]
+offset_left = -206.0
+offset_top = 318.0
+offset_right = -61.0
+offset_bottom = 439.0
+substation_id = "100800"
+
+[node name="subpanel10" parent="SubstationRoot" instance=ExtResource("6_5vw27")]
+offset_left = -452.0
+offset_top = 465.0
+offset_right = -307.0
+offset_bottom = 586.0
+substation_id = "102101"
+
+[node name="subpanel" parent="SubstationRoot" instance=ExtResource("6_5vw27")]
 offset_left = -405.0
 offset_top = -251.0
 offset_right = -260.0
 offset_bottom = -130.0
-substation_id = "SS-101"
+substation_id = "101800"
 
-[node name="subpanel2" parent="." instance=ExtResource("6_5vw27")]
+[node name="subpanel4" parent="SubstationRoot" instance=ExtResource("6_5vw27")]
+offset_left = -62.0
+offset_top = -250.0
+offset_right = 83.0
+offset_bottom = -129.0
+substation_id = "SS-103"
+
+[node name="subpanel2" parent="SubstationRoot" instance=ExtResource("6_5vw27")]
 offset_left = -231.0
 offset_top = -251.0
 offset_right = -86.0
 offset_bottom = -130.0
-substation_id = "SS-102"
+substation_id = "102701"
 
-[node name="subpanel2" parent="subpanel2" instance=ExtResource("6_5vw27")]
-layout_mode = 0
-offset_left = 169.0
-offset_top = 1.0
-offset_right = 314.0
-offset_bottom = 122.0
-substation_id = "SS-103"
+[node name="subpanel5" parent="SubstationRoot" instance=ExtResource("6_5vw27")]
+offset_left = -391.0
+offset_top = -14.0
+offset_right = -246.0
+offset_bottom = 107.0
+substation_id = "102102"
 
 [node name="Camera2D" type="Camera2D" parent="."]
 script = ExtResource("1_h2yge")
 base_pan_speed = 300.0
+
+[node name="PopupMenu" type="PopupMenu" parent="."]
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
@@ -199,25 +279,11 @@ offset_bottom = 160.0
 grow_horizontal = 0
 theme = ExtResource("5_lquwl")
 
-[node name="Line2D" type="Line2D" parent="." node_paths=PackedStringArray("line_label", "current_label")]
-position = Vector2(-322, -143)
-points = PackedVector2Array(-12, 11, -12, 200)
-default_color = Color(0.958966, 0.242522, 1, 1)
-script = ExtResource("9_kek77")
-line_id = "SS-104"
-line_label = NodePath("Label")
-current_label = NodePath("Label2")
-
-[node name="Label" type="Label" parent="Line2D"]
-offset_left = -3.0
-offset_top = 69.0
-offset_right = 37.0
-offset_bottom = 92.0
-theme_override_colors/font_color = Color(0, 0, 0, 1)
-
-[node name="Label2" type="Label" parent="Line2D"]
-offset_left = -4.0
-offset_top = 88.0
-offset_right = 36.0
-offset_bottom = 111.0
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+[node name="Control" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 10.0
+offset_top = 123.0
+offset_right = 50.0
+offset_bottom = 163.0
+script = ExtResource("8_4c57u")

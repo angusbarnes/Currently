@@ -1,34 +1,48 @@
 import asyncio
 import json
-import random
+import sqlite3
 import websockets
 
-# List of substations to simulate
-SUBSTATIONS = ["SS-101", "SS-102", "SS-103", "SS-104"]
+DB_PATH = "sensitive/modbus_data.db"   # change this to your actual file
 
-async def generate_substation_data(sub_id: str) -> dict:
-    """Return arbitrary but reasonable substation data."""
-    return {
-        "id": sub_id,
-        "voltage_kV": 11.0 + random.uniform(-0.2, 0.2),  # around 11kV
-        "current_A": random.uniform(50, 400),            # load current
-        "power_MW": random.uniform(0.5, 5.0),            # power
-        "online": random.choice([True, True, True, False]) # mostly True
-    }
-
-async def data_server(websocket):
+async def stream_modbus_logs(websocket):
+    """Stream modbus log rows sequentially from SQLite."""
     try:
-        while True:
-            # Generate one packet per substation
-            for sub_id in SUBSTATIONS:
-                data = await generate_substation_data(sub_id)
-                await websocket.send(json.dumps(data))
-            await asyncio.sleep(1.0)  # update every second
+        # open db connection (per-client safe for asyncio)
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+
+        # query ordered by time and device
+        cur.execute("""
+            SELECT *
+            FROM modbus_logs
+            WHERE timestamp >= "2023-12-29 04:45:00"
+            ORDER BY timestamp ASC
+        """)
+
+        batch = []
+        for row in cur:
+            # convert row to plain dict for JSON
+            data = dict(row)
+            # SQLite stores 0/1 for bools -> normalize if needed
+            # e.g. if you want online/offline field, but your schema doesn't have it
+            await websocket.send(json.dumps(data, default=str))
+
+            if data["device_name"] in batch:
+                print(f"Dispensed batch: {batch}")
+                batch = []
+                await asyncio.sleep(1.0)  # one row per second (adjust as needed)
+            else:
+                batch.append(data["device_name"])
+
     except websockets.exceptions.ConnectionClosed:
         print("Client disconnected")
+    finally:
+        conn.close()
 
 async def main():
-    server = await websockets.serve(data_server, "127.0.0.1", 8080)
+    server = await websockets.serve(stream_modbus_logs, "127.0.0.1", 8080)
     print("Server started on ws://127.0.0.1:8080")
     await server.wait_closed()
 

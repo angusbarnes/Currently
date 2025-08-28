@@ -34,6 +34,9 @@ func _unhandled_input(event):
 			dragging = event.pressed
 			last_mouse_pos = get_viewport().get_mouse_position()
 
+		if event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
+			pass
+			
 	# --- Drag movement ---
 	if event is InputEventMouseMotion and dragging:
 		var mouse_pos = get_viewport().get_mouse_position()

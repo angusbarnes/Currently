@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="PlaceableObject" load_steps=2 format=3 uid="uid://b4fifcns0vimf"]
+
+[ext_resource type="Script" uid="uid://b3sj5dj8ecixf" path="res://placeable_object.gd" id="1_g5ko2"]
+
+[resource]
+script = ExtResource("1_g5ko2")
+health = 0
+strings = PackedStringArray()
+metadata/_custom_type_script = "uid://b3sj5dj8ecixf"
