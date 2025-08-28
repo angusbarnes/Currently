@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://bch3nb2j1ew0i"]
+[gd_scene load_steps=18 format=3 uid="uid://bch3nb2j1ew0i"]
 
 [ext_resource type="Script" uid="uid://clpxcdjb33jvx" path="res://UI/camera_controller.gd" id="1_h2yge"]
 [ext_resource type="Script" uid="uid://crsre26wgpos2" path="res://Canvas.gd" id="1_hxd7n"]
@@ -11,6 +11,8 @@
 [ext_resource type="Script" uid="uid://dsa8nx5mock2p" path="res://menu_builder.gd" id="8_4c57u"]
 [ext_resource type="Script" uid="uid://wopa5t4fucca" path="res://LineTile.gd" id="9_kek77"]
 [ext_resource type="Script" uid="uid://cpg8c2voyn7b2" path="res://AdvancedStatsDisplay.gd" id="10_efxa6"]
+[ext_resource type="Texture2D" uid="uid://ordr4rt47yav" path="res://Image/volt.png" id="11_ycdy4"]
+[ext_resource type="Texture2D" uid="uid://cfioeol50bu7q" path="res://Image/current.png" id="12_w48qg"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_5vw27"]
 
@@ -21,6 +23,16 @@ corner_radius_top_right = 7
 corner_radius_bottom_right = 7
 corner_radius_bottom_left = 7
 corner_detail = 14
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vivmo"]
+bg_color = Color(0.162066, 0.162066, 0.162066, 1)
+corner_radius_top_left = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2cqfq"]
+bg_color = Color(0.728822, 0.728822, 0.728822, 1)
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
 
 [node name="UI Root" type="Node2D"]
 script = ExtResource("1_hxd7n")
@@ -37,10 +49,10 @@ scale = Vector2(0.109396, 0.109396)
 texture = ExtResource("4_lquwl")
 
 [node name="ClickCatcher" type="Panel" parent="."]
-offset_left = -1117.0
-offset_top = -505.0
-offset_right = 1397.0
-offset_bottom = 1313.0
+offset_left = -1047.0
+offset_top = -483.0
+offset_right = 1467.0
+offset_bottom = 1335.0
 theme_override_styles/panel = SubResource("StyleBoxEmpty_5vw27")
 script = ExtResource("5_kek77")
 
@@ -318,59 +330,232 @@ anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -290.0
-offset_bottom = 160.0
+offset_bottom = 223.0
 grow_horizontal = 0
 theme = ExtResource("5_lquwl")
 script = ExtResource("10_efxa6")
-phase_a_label = NodePath("Label")
-phase_b_label = NodePath("Label2")
-phase_c_label = NodePath("Label6")
-current_a_label = NodePath("Label3")
-current_b_label = NodePath("Label5")
-current_c_label = NodePath("Label4")
+phase_a_label = NodePath("Volt A/Panel2/Label2")
+phase_b_label = NodePath("Volt B/Panel2/Label2")
+phase_c_label = NodePath("Volt C/Panel2/Label2")
+current_a_label = NodePath("Current A/Panel2/Label2")
+current_b_label = NodePath("Current B/Panel2/Label2")
+current_c_label = NodePath("Current C/Panel2/Label2")
 
-[node name="Label4" type="Label" parent="CanvasLayer/Panel"]
-offset_left = 10.0
-offset_top = 123.0
-offset_right = 50.0
-offset_bottom = 146.0
-text = "teat"
-
-[node name="Label5" type="Label" parent="CanvasLayer/Panel"]
-offset_left = 11.0
-offset_top = 102.0
-offset_right = 51.0
-offset_bottom = 125.0
-text = "teat"
-
-[node name="Label3" type="Label" parent="CanvasLayer/Panel"]
-offset_left = 12.0
-offset_top = 82.0
-offset_right = 52.0
-offset_bottom = 105.0
-text = "teat"
-
-[node name="Label6" type="Label" parent="CanvasLayer/Panel"]
-offset_left = 12.0
-offset_top = 47.0
-offset_right = 52.0
-offset_bottom = 70.0
-text = "teat"
-
-[node name="Label2" type="Label" parent="CanvasLayer/Panel"]
-offset_left = 13.0
-offset_top = 25.0
-offset_right = 53.0
-offset_bottom = 48.0
-text = "teat"
-
-[node name="Label" type="Label" parent="CanvasLayer/Panel"]
+[node name="Volt B" type="Panel" parent="CanvasLayer/Panel"]
 layout_mode = 0
-offset_left = 14.0
+offset_left = 6.0
+offset_top = 39.0
+offset_right = 131.0
+offset_bottom = 71.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_vivmo")
+
+[node name="Label" type="Label" parent="CanvasLayer/Panel/Volt B"]
+layout_mode = 0
+offset_left = 34.0
 offset_top = 4.0
-offset_right = 54.0
+offset_right = 107.0
 offset_bottom = 27.0
-text = "teat"
+text = "Voltage B"
+
+[node name="Volt" type="Sprite2D" parent="CanvasLayer/Panel/Volt B"]
+position = Vector2(17, 16)
+scale = Vector2(0.0405405, 0.0405405)
+texture = ExtResource("11_ycdy4")
+
+[node name="Panel2" type="Panel" parent="CanvasLayer/Panel/Volt B"]
+layout_mode = 0
+offset_left = 124.0
+offset_right = 192.0
+offset_bottom = 32.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_2cqfq")
+
+[node name="Label2" type="Label" parent="CanvasLayer/Panel/Volt B/Panel2"]
+offset_left = 7.0
+offset_top = 4.0
+offset_right = 63.0
+offset_bottom = 27.0
+text = "240.24"
+
+[node name="Volt C" type="Panel" parent="CanvasLayer/Panel"]
+layout_mode = 0
+offset_left = 7.0
+offset_top = 74.0
+offset_right = 132.0
+offset_bottom = 106.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_vivmo")
+
+[node name="Label" type="Label" parent="CanvasLayer/Panel/Volt C"]
+layout_mode = 0
+offset_left = 34.0
+offset_top = 4.0
+offset_right = 107.0
+offset_bottom = 27.0
+text = "Voltage C"
+
+[node name="Volt" type="Sprite2D" parent="CanvasLayer/Panel/Volt C"]
+position = Vector2(17, 16)
+scale = Vector2(0.0405405, 0.0405405)
+texture = ExtResource("11_ycdy4")
+
+[node name="Panel2" type="Panel" parent="CanvasLayer/Panel/Volt C"]
+layout_mode = 0
+offset_left = 124.0
+offset_right = 192.0
+offset_bottom = 32.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_2cqfq")
+
+[node name="Label2" type="Label" parent="CanvasLayer/Panel/Volt C/Panel2"]
+offset_left = 7.0
+offset_top = 4.0
+offset_right = 63.0
+offset_bottom = 27.0
+text = "240.24"
+
+[node name="Current A" type="Panel" parent="CanvasLayer/Panel"]
+layout_mode = 0
+offset_left = 7.0
+offset_top = 109.0
+offset_right = 132.0
+offset_bottom = 141.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_vivmo")
+
+[node name="Label" type="Label" parent="CanvasLayer/Panel/Current A"]
+layout_mode = 0
+offset_left = 34.0
+offset_top = 4.0
+offset_right = 107.0
+offset_bottom = 27.0
+text = "Current A"
+
+[node name="Volt" type="Sprite2D" parent="CanvasLayer/Panel/Current A"]
+modulate = Color(2.02149e-06, 0.565016, 0.829109, 1)
+self_modulate = Color(0, 0.777357, 0.936476, 1)
+position = Vector2(17, 16)
+scale = Vector2(0.102635, 0.102635)
+texture = ExtResource("12_w48qg")
+
+[node name="Panel2" type="Panel" parent="CanvasLayer/Panel/Current A"]
+layout_mode = 0
+offset_left = 124.0
+offset_right = 192.0
+offset_bottom = 32.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_2cqfq")
+
+[node name="Label2" type="Label" parent="CanvasLayer/Panel/Current A/Panel2"]
+offset_left = 7.0
+offset_top = 4.0
+offset_right = 63.0
+offset_bottom = 27.0
+text = "240.24"
+
+[node name="Current B" type="Panel" parent="CanvasLayer/Panel"]
+layout_mode = 0
+offset_left = 7.0
+offset_top = 143.0
+offset_right = 132.0
+offset_bottom = 175.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_vivmo")
+
+[node name="Volt2" type="Sprite2D" parent="CanvasLayer/Panel/Current B"]
+modulate = Color(2.02149e-06, 0.565016, 0.829109, 1)
+self_modulate = Color(0, 0.777357, 0.936476, 1)
+position = Vector2(17, 16)
+scale = Vector2(0.102635, 0.102635)
+texture = ExtResource("12_w48qg")
+
+[node name="Label" type="Label" parent="CanvasLayer/Panel/Current B"]
+layout_mode = 0
+offset_left = 34.0
+offset_top = 4.0
+offset_right = 107.0
+offset_bottom = 27.0
+text = "Current B"
+
+[node name="Panel2" type="Panel" parent="CanvasLayer/Panel/Current B"]
+layout_mode = 0
+offset_left = 124.0
+offset_right = 192.0
+offset_bottom = 32.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_2cqfq")
+
+[node name="Label2" type="Label" parent="CanvasLayer/Panel/Current B/Panel2"]
+offset_left = 7.0
+offset_top = 4.0
+offset_right = 63.0
+offset_bottom = 27.0
+text = "240.24"
+
+[node name="Current C" type="Panel" parent="CanvasLayer/Panel"]
+layout_mode = 0
+offset_left = 7.0
+offset_top = 178.0
+offset_right = 132.0
+offset_bottom = 210.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_vivmo")
+
+[node name="Volt3" type="Sprite2D" parent="CanvasLayer/Panel/Current C"]
+modulate = Color(2.02149e-06, 0.565016, 0.829109, 1)
+self_modulate = Color(0, 0.777357, 0.936476, 1)
+position = Vector2(17, 16)
+scale = Vector2(0.102635, 0.102635)
+texture = ExtResource("12_w48qg")
+
+[node name="Label" type="Label" parent="CanvasLayer/Panel/Current C"]
+layout_mode = 0
+offset_left = 34.0
+offset_top = 4.0
+offset_right = 107.0
+offset_bottom = 27.0
+text = "Current C"
+
+[node name="Panel2" type="Panel" parent="CanvasLayer/Panel/Current C"]
+layout_mode = 0
+offset_left = 124.0
+offset_right = 192.0
+offset_bottom = 32.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_2cqfq")
+
+[node name="Label2" type="Label" parent="CanvasLayer/Panel/Current C/Panel2"]
+offset_left = 7.0
+offset_top = 4.0
+offset_right = 63.0
+offset_bottom = 27.0
+text = "240.24"
+
+[node name="Volt A" type="Panel" parent="CanvasLayer/Panel"]
+layout_mode = 0
+offset_left = 6.0
+offset_top = 4.0
+offset_right = 131.0
+offset_bottom = 36.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_vivmo")
+
+[node name="Label" type="Label" parent="CanvasLayer/Panel/Volt A"]
+layout_mode = 0
+offset_left = 34.0
+offset_top = 4.0
+offset_right = 107.0
+offset_bottom = 27.0
+text = "Voltage A"
+
+[node name="Volt" type="Sprite2D" parent="CanvasLayer/Panel/Volt A"]
+position = Vector2(17, 16)
+scale = Vector2(0.0405405, 0.0405405)
+texture = ExtResource("11_ycdy4")
+
+[node name="Panel2" type="Panel" parent="CanvasLayer/Panel/Volt A"]
+layout_mode = 0
+offset_left = 124.0
+offset_right = 192.0
+offset_bottom = 32.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_2cqfq")
+
+[node name="Label2" type="Label" parent="CanvasLayer/Panel/Volt A/Panel2"]
+offset_left = 7.0
+offset_top = 4.0
+offset_right = 63.0
+offset_bottom = 27.0
+text = "240.24"
 
 [node name="Control" type="Control" parent="CanvasLayer"]
 layout_mode = 3

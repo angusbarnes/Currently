@@ -8,6 +8,9 @@ extends Panel
 @export var current_b_label: Label
 @export var current_c_label: Label
 
+func round_to_dec(num, digit):
+	return round(num * pow(10.0, digit)) / pow(10.0, digit)
+
 func _ready():
 	SelectionManager.selection_changed.connect(_substation_selection_changed)
 
@@ -22,9 +25,9 @@ func _process(delta):
 		return
 	var data = last_selected_sub.get_last_interval()
 	
-	phase_a_label.text = str(data["voltage_an"])
-	phase_b_label.text = str(data["voltage_bn"])
-	phase_c_label.text = str(data["voltage_cn"])
-	current_a_label.text = str(data["current_a"])
-	current_b_label.text = str(data["current_b"])
-	current_c_label.text = str(data["current_c"])
+	phase_a_label.text = str(round_to_dec(data["voltage_an"],2))
+	phase_b_label.text = str(round_to_dec(data["voltage_bn"],2))
+	phase_c_label.text = str(round_to_dec(data["voltage_cn"],2))
+	current_a_label.text = str(round_to_dec(data["current_a"],2))
+	current_b_label.text = str(round_to_dec(data["current_b"],2))
+	current_c_label.text = str(round_to_dec(data["current_c"],2))
