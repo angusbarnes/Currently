@@ -34,14 +34,14 @@ import pandapower as pp
 from typing import Optional
 
 import pandas as pd
-from lib.data_types import FeederDefinition
-from lib.data_types import BusNode
-from lib.display import run_visualization
-from lib.utils import string_to_bool, safe_str_to_float, resolve_relative_path_from_config
-from lib.config import CONFIG
+from server.lib.data_types import FeederDefinition
+from server.lib.data_types import BusNode
+from server.lib.display import run_visualization
+from server.lib.utils import string_to_bool, safe_str_to_float, resolve_relative_path_from_config
+from server.lib.config import CONFIG
 from load_classifier import get_characterised_loads
 import time
-from lib.reporting import report_loading_conditions, report_bus_voltages, report_line_loadings
+from server.lib.reporting import report_loading_conditions, report_bus_voltages, report_line_loadings
 
 #TODO: Implement this feature correctly
 # lib.config.SetPathParamResolvers(
@@ -95,6 +95,7 @@ cumulative_rating = 0
 with open(resolve_relative_path_from_config(CONFIG["network-file"], "./config/base_scenario.toml"), newline='') as csvfile:
     reader = csv.reader(csvfile)
     next(reader)  # Skip header
+    
 
     for bus, feeder, feeder_length, feeder_type, rating, substation_key, active, p, q, _ in reader:
         feeder_def = FeederDefinition(
@@ -130,7 +131,7 @@ with open(resolve_relative_path_from_config(CONFIG["network-file"], "./config/ba
                     else:
                         _p = site_maximums[0] * loading_percents[substation_key][0]
                         _q = site_maximums[1] * loading_percents[substation_key][1]
-                    logging.info(f"Linked {bus} with load characterisation. DATA_LINK_KEY={substation_key}. Characterised load: P={site_maximums[0] * loading_percents[substation_key][0]:.2f} kW, P={site_maximums[1] * loading_percents[substation_key][1]:.2f} kVAr")
+                    logging.info(f"Linked {bus} with load characterisation. DATA_LINK_KEY={substation_key}. Characterised load: P={site_maximums[0] * loading_percents[substation_key][0]/1000:.5f} kW, Q={site_maximums[1] * loading_percents[substation_key][1]/1000:.5f} kVAr")
                     accounted_p_kw += _p
                     accounted_q_kvar += _q
                     _characterised = True
@@ -203,9 +204,11 @@ for node in bus_nodes.values():
     if node.rating > 0:
 
         if node.characterised:
-            pp.create_load(net, bus=node.pp_bus, p_mw=node.characterised_load_kw/1000, q_mvar=node.characterised_load_kvar/1000)
+            #pp.create_load(net, name=node.name, bus=node.pp_bus, p_mw=node.characterised_load_kw/1000, q_mvar=node.characterised_load_kvar/1000)
+            pp.create_load(net, name=node.name, bus=node.pp_bus, p_mw=0.2, q_mvar=0.2)
         else:
-            pp.create_load(net, bus=node.pp_bus, p_mw=unaccounted_load_kw/1000 * node.rating/cumulative_rating, q_mvar=unaccounted_load_kvar/1000 * node.rating/cumulative_rating)
+            pass
+            #pp.create_load(net, name=node.name, bus=node.pp_bus, p_mw=unaccounted_load_kw/1000 * node.rating/cumulative_rating, q_mvar=unaccounted_load_kvar/1000 * node.rating/cumulative_rating)
         loads_created += 1
     else:
         raise Exception(f"Undefined transformer rating for: {node.name}")
@@ -215,6 +218,8 @@ tree_elements = {name: node for name, node in bus_nodes.items()}
 logging.info(f"{lines_created} lines and {loads_created} loads added to the network.")
 
 logging.info(net)
+
+print(net.line)
 
 start = time.time()
 pp.runpp(net)
