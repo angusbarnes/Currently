@@ -111,25 +111,25 @@ def update_nodes_from_results(nodes: Dict[int, ActiveNode], res_bus) -> None:
     for id, node in nodes.items():
         if id in res_bus.index:
             row = res_bus.loc[id]
-            node.vm_pu = row["vm_pu"]
-            node.va_degree = row["va_degree"]
-            node.p_mw = row["p_mw"]
-            node.q_mvar = row["q_mvar"]
+            node.vm_pu = float(row["vm_pu"])
+            node.va_degree = float(row["va_degree"])
+            node.p_mw = float(row["p_mw"])
+            node.q_mvar = float(row["q_mvar"])
 
 
 def update_lines_from_results(lines: Dict[int, Line], res_line) -> None:
     for id, line in lines.items():
         if id in res_line.index:
             row = res_line.loc[id]
-            line.loading_percent = row["loading_percent"]
-            line.i_from_ka = row["i_from_ka"]
-            line.i_to_ka = row["i_to_ka"]
-            line.p_from_mw = row["p_from_mw"]
-            line.q_from_mvar = row["q_from_mvar"]
-            line.p_to_mw = row["p_to_mw"]
-            line.q_to_mvar = row["q_to_mvar"]
-            line.pl_mw = row["pl_mw"]
-            line.ql_mvar = row["ql_mvar"]
+            line.loading_percent = float(row["loading_percent"])
+            line.i_from_ka = float(row["i_from_ka"])
+            line.i_to_ka = float(row["i_to_ka"])
+            line.p_from_mw = float(row["p_from_mw"])
+            line.q_from_mvar = float(row["q_from_mvar"])
+            line.p_to_mw = float(row["p_to_mw"])
+            line.q_to_mvar = float(row["q_to_mvar"])
+            line.pl_mw = float(row["pl_mw"])
+            line.ql_mvar = float(row["ql_mvar"])
 
 
 def load_nodes_from_disk(node_file: Path) -> Dict[int, ActiveNode]:
