@@ -4,6 +4,10 @@ import csv
 import logging
 import pandapower as pp 
 import pandas as pd
+from dataclasses import dataclass, field
+from typing import Optional
+import pandapower as pp
+import pandapower.networks as pn
 
 from typing import List, Dict
 
@@ -74,8 +78,19 @@ class Line:
     line_object: object = None
     comment: str = ""
 
+    loading_percent: Optional[float] = None
+    i_from_ka: Optional[float] = None
+    i_to_ka: Optional[float] = None
+    p_from_mw: Optional[float] = None
+    q_from_mvar: Optional[float] = None
+    p_to_mw: Optional[float] = None
+    q_to_mvar: Optional[float] = None
+    pl_mw: Optional[float] = None
+    ql_mvar: Optional[float] = None
+
+
 @dataclass
-class ActiveNode(Node):
+class ActiveNode:
     id: int
     name: str
     rating: float
@@ -85,6 +100,36 @@ class ActiveNode(Node):
     node_mv_nominal: float = 11.0
     node_object: object = None
     comment: str = ""
+
+    vm_pu: Optional[float] = None
+    va_degree: Optional[float] = None
+    p_mw: Optional[float] = None
+    q_mvar: Optional[float] = None
+
+
+def update_nodes_from_results(nodes: Dict[int, ActiveNode], res_bus) -> None:
+    for id, node in nodes.items():
+        if id in res_bus.index:
+            row = res_bus.loc[id]
+            node.vm_pu = row["vm_pu"]
+            node.va_degree = row["va_degree"]
+            node.p_mw = row["p_mw"]
+            node.q_mvar = row["q_mvar"]
+
+
+def update_lines_from_results(lines: Dict[int, Line], res_line) -> None:
+    for id, line in lines.items():
+        if id in res_line.index:
+            row = res_line.loc[id]
+            line.loading_percent = row["loading_percent"]
+            line.i_from_ka = row["i_from_ka"]
+            line.i_to_ka = row["i_to_ka"]
+            line.p_from_mw = row["p_from_mw"]
+            line.q_from_mvar = row["q_from_mvar"]
+            line.p_to_mw = row["p_to_mw"]
+            line.q_to_mvar = row["q_to_mvar"]
+            line.pl_mw = row["pl_mw"]
+            line.ql_mvar = row["ql_mvar"]
 
 
 def load_nodes_from_disk(node_file: Path) -> Dict[int, ActiveNode]:
@@ -113,7 +158,7 @@ def load_lines_from_disk(line_file: Path) -> Dict[int, Line]:
         next(reader)  # Skip header
         for to_node, from_node, length, type, data_link_key, is_active, notes in reader:
 
-            line_name = f"FROM: {to_node}, TO: {from_node}"
+            line_name = f"FROM: {from_node}, TO: {to_node}"
             
             # Janky ass error checking, make this cleaner if have time
             try:
@@ -148,9 +193,13 @@ def build_network(nodes: Dict[int, ActiveNode], lines: Dict[int, Line], cable_ty
 
     node_name_lookup_cache = {}
 
+    total_rating = 0
+
     for id, node in nodes.items():
         pp_bus = pp.create_bus(net, vn_kv=node.node_mv_nominal, name=node.name, index=id)
         node.node_object = pp_bus
+
+        total_rating += node.rating
 
         if node.name in node_name_lookup_cache:
             raise ValueError(f"Duplicate node names detected. Cannot have two nodes with the same name={node.name}")
@@ -182,14 +231,14 @@ def build_network(nodes: Dict[int, ActiveNode], lines: Dict[int, Line], cable_ty
                 net,
                 from_bus=node_from.node_object,
                 to_bus=node_to.node_object,
-                length_km=line.length,
+                length_km=line.length/1000,
                 std_type=line.type,
-                name=f"FROM: {line.name}, TO: {line.name}"
+                name=line.name
             )
 
             line.line_object = pp_line
 
-    return net
+    return net, total_rating
 
 
 def clear_network_loads(net: pd.DataFrame):
