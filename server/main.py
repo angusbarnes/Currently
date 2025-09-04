@@ -151,7 +151,9 @@ async def stream_modbus_logs(websocket):
                 logger.notice(f"Main load flow evaluation time = {exec_time:.3f} seconds.")
             # report_bus_voltages(net, 3)
             # report_line_loadings(net, 3)
-            await websocket.send(json.dumps([nodes, lines], default=str))
+            packet = json.dumps([nodes, lines], default=str)
+            logger.info(f"Preparing to send a packet with size: {len(packet)/1024:.1f} kB")
+            await websocket.send(packet)
             await asyncio.sleep(2-exec_time)
 
     except websockets.exceptions.ConnectionClosed:
