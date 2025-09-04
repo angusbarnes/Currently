@@ -9,7 +9,7 @@ except ImportError:
     logging.error("Pygame is not installed. Display features will be disabled.")
     PYGAME_AVAILABLE = False
 
-from lib.data_types import BusNode
+from .data_types import BusNode
 
 
 def layout_tree(node: BusNode, x, y, spacing_x, spacing_y, positions, depth=0):

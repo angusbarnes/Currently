@@ -1,6 +1,6 @@
 import sys
 import os
-import lib.utils as utils
+from . import utils
 
 try:
     import tomllib
@@ -17,8 +17,6 @@ _default_config = {
 
 def SetPathParamResolves(resolver_map: dict):
     pass
-
-
 
 def _parse_scenario_file(scenario_path, resolvers = None):
     if not os.path.isfile(scenario_path):

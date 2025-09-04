@@ -2,8 +2,8 @@ import sqlite3
 import pandas as pd
 import os
 import numpy as np
-from lib.utils import report_mean_median_dev
-from lib.report_generation import export_excel_report
+from .utils import report_mean_median_dev
+from .report_generation import export_excel_report
 
 
 class CharacterisedLoad:
