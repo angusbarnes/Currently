@@ -1,9 +1,9 @@
-from lib.envparser import load_env
+from server.lib.envparser import load_env
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
 import logging
-from lib.load_characterisation import characterise_load
+from server.lib.load_characterisation import characterise_load
 
 def lookup_or_next_closest(time_sorted_df, target_timestamp, timestamp_col="timestamp"):
     idx = time_sorted_df[time_sorted_df[timestamp_col] >= target_timestamp].index
@@ -19,7 +19,7 @@ def lookup_or_next_closest(time_sorted_df, target_timestamp, timestamp_col="time
 def get_characterised_loads():
     ENV = load_env()
 
-    site_data = pd.read_csv("./sensitive/AusGrid_SITE_TOTALS.csv", parse_dates=["timestamp"], dayfirst=True)
+    site_data = pd.read_csv("./sensitive/site_totals.csv", parse_dates=["timestamp"], dayfirst=True)
     site_data_sorted = site_data.sort_values("timestamp").reset_index(drop=True)
 
     IDS = []
