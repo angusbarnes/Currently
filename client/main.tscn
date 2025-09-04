@@ -38,12 +38,14 @@ corner_radius_bottom_right = 10
 script = ExtResource("1_hxd7n")
 
 [node name="SldPageOne" type="Sprite2D" parent="."]
+z_index = -5
 material = ExtResource("2_272bh")
 position = Vector2(518, 229)
 scale = Vector2(0.109, 0.109)
 texture = ExtResource("2_1bvp3")
 
 [node name="SldPageTwo" type="Sprite2D" parent="."]
+z_index = -5
 position = Vector2(-187, 229)
 scale = Vector2(0.109396, 0.109396)
 texture = ExtResource("4_lquwl")
