@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3 uid="uid://ct8afd8vrm5il"]
 
-[ext_resource type="Script" uid="uid://bgwm0bmxxhq77" path="res://SubstationTile.gd" id="1_tl2cf"]
+[ext_resource type="Script" uid="uid://c2byews8xi630" path="res://scripts/SubstationTile.gd" id="1_tl2cf"]
 [ext_resource type="Theme" uid="uid://dfvhqwvari6iw" path="res://base_theme.tres" id="2_bjewv"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_kek77"]
