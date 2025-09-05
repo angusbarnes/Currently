@@ -65,6 +65,11 @@ class Node:
     def deserialise(self):
         raise NotImplementedError()
 
+def assure_float(f: float):
+    if f is None:
+        return 0.0
+    
+    return f
 
 @dataclass
 class Line:
@@ -88,6 +93,18 @@ class Line:
     pl_mw: Optional[float] = None
     ql_mvar: Optional[float] = None
 
+    def serialise(self):
+        _json = {}
+
+        _json["id"] = str(self.id)
+        _json["name"] = self.name
+        _json["length"] = self.length
+        _json["type"] = self.type
+        _json["loading"] = assure_float(self.loading_percent)
+        _json["i"] = assure_float(self.i_from_ka) * 1000
+
+        return _json
+
 
 @dataclass
 class ActiveNode:
@@ -101,35 +118,51 @@ class ActiveNode:
     node_object: object = None
     comment: str = ""
 
+    is_online: bool = False
+
     vm_pu: Optional[float] = None
     va_degree: Optional[float] = None
     p_mw: Optional[float] = None
     q_mvar: Optional[float] = None
+
+    def serialise(self):
+        _json = {}
+
+        _json["id"] = str(self.id)
+        _json["name"] = self.name
+        _json["rating"] = assure_float(self.rating)
+        _json["voltage"] = assure_float(self.vm_pu) * self.node_mv_nominal
+        _json["p_kw"] = assure_float(self.p_mw) * 1000
+        _json["q_kvar"] = assure_float(self.q_mvar) * 1000
+        _json["phase"] = assure_float(self.va_degree)
+        _json["online"] = self.is_online
+
+        return _json
 
 
 def update_nodes_from_results(nodes: Dict[int, ActiveNode], res_bus) -> None:
     for id, node in nodes.items():
         if id in res_bus.index:
             row = res_bus.loc[id]
-            node.vm_pu = round(float(row["vm_pu"]), 3)
-            node.va_degree = round(float(row["va_degree"]), 3)
-            node.p_mw = round(float(row["p_mw"]), 3)
-            node.q_mvar = round(float(row["q_mvar"]), 3)
+            node.vm_pu = round(float(row["vm_pu"]), 5)
+            node.va_degree = round(float(row["va_degree"]), 5)
+            node.p_mw = round(float(row["p_mw"]), 5)
+            node.q_mvar = round(float(row["q_mvar"]), 5)
 
 
 def update_lines_from_results(lines: Dict[int, Line], res_line) -> None:
     for id, line in lines.items():
         if id in res_line.index:
             row = res_line.loc[id]
-            line.loading_percent = round(float(row["loading_percent"]), 3)
-            line.i_from_ka = round(float(row["i_from_ka"]), 3)
-            line.i_to_ka = round(float(row["i_to_ka"]), 3)
-            line.p_from_mw = round(float(row["p_from_mw"]), 3)
-            line.q_from_mvar = round(float(row["q_from_mvar"]), 3)
-            line.p_to_mw = round(float(row["p_to_mw"]), 3)
-            line.q_to_mvar = round(float(row["q_to_mvar"]), 3)
-            line.pl_mw = round(float(row["pl_mw"]), 3)
-            line.ql_mvar = round(float(row["ql_mvar"]), 3)
+            line.loading_percent = round(float(row["loading_percent"]), 5)
+            line.i_from_ka = round(float(row["i_from_ka"]), 5)
+            line.i_to_ka = round(float(row["i_to_ka"]), 5)
+            line.p_from_mw = round(float(row["p_from_mw"]), 5)
+            line.q_from_mvar = round(float(row["q_from_mvar"]), 5)
+            line.p_to_mw = round(float(row["p_to_mw"]), 5)
+            line.q_to_mvar = round(float(row["q_to_mvar"]), 5)
+            line.pl_mw = round(float(row["pl_mw"]), 5)
+            line.ql_mvar = round(float(row["ql_mvar"]), 5)
 
 
 def load_nodes_from_disk(node_file: Path) -> Dict[int, ActiveNode]:

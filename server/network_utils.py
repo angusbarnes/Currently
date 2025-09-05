@@ -1,6 +1,15 @@
 import json
 from dataclasses import asdict, is_dataclass, fields
 
+
+def serialise_list(list):
+    data = []
+
+    for i in list:
+        data.append(i.serialise())
+
+    return data
+
 def dataclass_to_json(obj) -> str:
     if not is_dataclass(obj):
         raise TypeError("dataclass_to_json expects a dataclass instance")

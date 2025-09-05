@@ -1,5 +1,7 @@
 import logging
 from colorama import Fore, Style, init as colorama_init
+
+from network_utils import serialise_list
 colorama_init(autoreset=True)
 
 
@@ -56,10 +58,8 @@ from scipy.io import savemat
 import asyncio
 import websockets
 
-GLOBAL_SCALING_FACTOR = 1
+GLOBAL_SCALING_FACTOR = 5
 NETWORK_CONFIGURATION_DIRTY = False
-
-
 
 
 async def stream_modbus_logs(websocket):
@@ -82,6 +82,7 @@ async def stream_modbus_logs(websocket):
 
             site_totals = reading_set.pop() #TODO: Make this more resilient
 
+            remaining_rating = total_rating
 
             loaded_subs = []
             allocated_q = 0
@@ -98,6 +99,7 @@ async def stream_modbus_logs(websocket):
 
                 allocated_p += p
                 allocated_q += q
+                remaining_rating -= nodes[int(reading["device_name"])].rating
                 pp.create_load(
                     net, 
                     nodes[int(reading["device_name"])].node_object, 
@@ -106,6 +108,8 @@ async def stream_modbus_logs(websocket):
                     scaling=GLOBAL_SCALING_FACTOR,
                     name=nodes[int(reading["device_name"])].name
                 )
+
+                nodes[int(reading["device_name"])].is_online = True
 
                 logger.debug(f"Loaded {int(reading['device_name'])} with P={reading['power_active']/1000}, Q={reading['power_reactive']/1000}")
 
@@ -122,16 +126,18 @@ async def stream_modbus_logs(websocket):
                 # We need to create loads for any that do not have readings
                 # The act of creating a load should invalidate the online status of a substation
                 # We also skip the slack bus
-                if id not in loaded_subs or id == 0:
+                if id not in loaded_subs and id != 0:
                     pp.create_load(
                         net, 
                         node.node_object, 
-                        p_mw= remaining_q * node.rating/total_rating, 
-                        q_mvar=q, 
+                        p_mw= remaining_p * node.rating/remaining_rating, 
+                        q_mvar= remaining_q * node.rating/remaining_rating, 
                         scaling=GLOBAL_SCALING_FACTOR,
                         name=node.name
                     )
                     simulated_subs.append(id)
+
+                    node.is_online = False
             logger.info(f"Created {len(simulated_subs)} loads from site-wide scaling.")
             logger.debug(f"Loaded: {simulated_subs}")
             logger.notice(f"Processing load flow for timestamp: {Fore.LIGHTGREEN_EX}{site_totals['timestamp']}{Fore.RESET}")
@@ -149,9 +155,16 @@ async def stream_modbus_logs(websocket):
                 logger.warning(f"Main load flow evaluation time = {Fore.LIGHTRED_EX}{exec_time:.3f}{Fore.RESET} seconds.")
             else:
                 logger.notice(f"Main load flow evaluation time = {exec_time:.3f} seconds.")
+
+            data = {}
+
+            data["line_data"] = serialise_list(list(lines.values()))
+            data["node_data"] = serialise_list(list(nodes.values()))
+            data["site_totals"] = site_totals
             # report_bus_voltages(net, 3)
+            # print(site_totals)
             # report_line_loadings(net, 3)
-            packet = json.dumps([nodes, lines], default=str)
+            packet = json.dumps(data, default=str)
             logger.info(f"Preparing to send a packet with size: {len(packet)/1024:.1f} kB")
             await websocket.send(packet)
             await asyncio.sleep(2-exec_time)
