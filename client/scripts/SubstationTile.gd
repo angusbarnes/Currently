@@ -45,13 +45,13 @@ func _selected_style() -> StyleBoxFlat:
     sb.border_color = Color.YELLOW
     return sb
     
-func update_online_status(online: String):
+func update_online_status(online: bool):
         var sb = StyleBoxFlat.new()
         sb.set_corner_radius_all(30)
         
-        if online == "BAD":
+        if online == null:
             sb.bg_color = Color.ORANGE;
-        elif online == "GOOD":
+        elif online:
             sb.bg_color = Color.CHARTREUSE;
         else:
             sb.bg_color = Color.TOMATO
@@ -70,23 +70,28 @@ func get_last_interval() -> Dictionary:
 func has_safe_value(dict: Dictionary, key: String):
     return dict.has(key) and dict[key] != null
 
-var last_voltage: int = 0
+var last_voltage: float = 0
 var last_data: Dictionary = {}
 func update_data(data: Dictionary):
     last_data = data
-    if has_safe_value(data, "voltage_an"):
-        if data["voltage_an"] > last_voltage:
+    
+    if has_safe_value(data, "name"):
+        substation_label.clear()
+        substation_label.add_text(data["name"])
+    
+    if has_safe_value(data, "voltage"):
+        if data["voltage"] > last_voltage:
             voltage_label.add_theme_color_override("font_color", Color.GREEN)
-        elif data["voltage_an"] < last_voltage:
+        elif data["voltage"] < last_voltage:
             voltage_label.add_theme_color_override("font_color", Color.RED)
         else:
             voltage_label.add_theme_color_override("font_color", Color.HONEYDEW)
-        voltage_label.text = "%0.1f kV" % data["voltage_an"]
-        last_voltage = data["voltage_an"]
-    if has_safe_value(data, "current_a"):
-        current_label.text = "%0.1f A" % data["current_a"]
-    if has_safe_value(data, "power_active"):
-        power_label.text = "%0.1f MW" % data["power_active"]
+        voltage_label.text = "%0.3f kV" % data["voltage"]
+        last_voltage = Utils.round_to_dec(data["voltage"], 3)
+    if has_safe_value(data, "p_kw"):
+        current_label.text = "%0.1f kW" % data["p_kw"]
+    if has_safe_value(data, "q_kvar"):
+        power_label.text = "%0.1f kVAr" % data["q_kvar"]
     if data.has("online"):
         update_online_status(data["online"])
 

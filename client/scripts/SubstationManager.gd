@@ -9,23 +9,9 @@ signal error(msg: String)
 
 # --- Schema definition for incoming substation data ---
 const SUBSTATION_SCHEMA = {
-    "id": TYPE_FLOAT,
-    "timestamp": TYPE_STRING,
-    "device_name": TYPE_STRING,
-    "current_a": TYPE_FLOAT,
-    "current_b": TYPE_FLOAT,
-    "current_c": TYPE_FLOAT,
-    "power_active": TYPE_FLOAT,
-    "power_reactive": TYPE_FLOAT,
-    "power_apparent": TYPE_FLOAT,
-    "power_factor": TYPE_FLOAT,
-    "voltage_an": TYPE_FLOAT,
-    "voltage_bn": TYPE_FLOAT,
-    "voltage_cn": TYPE_FLOAT,
-    "voltage_ab": TYPE_FLOAT,
-    "voltage_bc": TYPE_FLOAT,
-    "voltage_ca": TYPE_FLOAT,
-    "cumulative_active_energy": TYPE_FLOAT,
+    "line_data": TYPE_ARRAY,
+    "node_data": TYPE_ARRAY,
+    "site_totals": TYPE_ARRAY
 }
 
 func _ready():
@@ -89,12 +75,21 @@ func _handle_message(msg: String):
         if wrong_type.size() > 0:
             print("   Wrong types: %s" % str(wrong_type))
 
-    if res.has("device_name"):
-        var id = res["device_name"]
-        if tiles.has(id):
-            tiles[id].update_data(res)
-        else:
-            print("[WS][WARN] Got data for unknown substation ID=%s" % id)
+    if res.has("node_data"):
+        for node in res["node_data"]:
+            var id = node["id"]
+            if tiles.has(id):
+                tiles[id].update_data(node)
+            else:
+                print("[WS][WARN] Got data for unknown substation ID=%s" % id)
+                
+    if res.has("line_data"):
+        for node in res["line_data"]:
+            var id = node["id"]
+            if tiles.has(id):
+                tiles[id].update_data(node)
+            else:
+                print("[WS][WARN] Got data for unknown line ID=%s" % id)
 
 func register_tile(id: String, tile: Node):
     assert(not tiles.has(id), "Two tiles cannot share the same substation ID! Name: " + id)

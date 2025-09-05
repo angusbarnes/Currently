@@ -4,6 +4,7 @@ extends Line2D
 @export var line_id: String
 @export var line_label: Label
 @export var current_label: Label
+@export var loading_label: Label
 @export var max_current: int
 
 var HEALTHY = Color.GREEN_YELLOW
@@ -61,6 +62,12 @@ func _ready():
     line_label.text = line_id
 
 func update_data(data: Dictionary):
-    if data.has("current_A"):
-        current_label.text = "%0.1f A" % data["current_A"]
-        default_color = HEALTHY.lerp(OVERLOAD, data["current_A"]/300)
+    if data.has("name"):
+        line_label.text = data["name"]
+    
+    if data.has("loading"):
+        loading_label.text = "%0.1f %%" % data["loading"]
+        default_color = HEALTHY.lerp(OVERLOAD, data["loading"]/100)
+    
+    if data.has("i"):
+        current_label.text = "%0.2f A" % data["i"]
