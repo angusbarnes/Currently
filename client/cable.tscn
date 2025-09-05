@@ -1,0 +1,36 @@
+[gd_scene load_steps=2 format=3 uid="uid://dkafknqonk10s"]
+
+[ext_resource type="Script" uid="uid://ch0kpss3lipkb" path="res://scripts/LineTile.gd" id="1_omul7"]
+
+[node name="Line2D" type="Line2D" node_paths=PackedStringArray("line_label", "current_label", "loading_label")]
+points = PackedVector2Array(-12, 11, -12, 49, -12, 200)
+default_color = Color(0.958966, 0.242522, 1, 1)
+script = ExtResource("1_omul7")
+line_id = "SS-104"
+line_label = NodePath("Label")
+current_label = NodePath("Label2")
+loading_label = NodePath("Label3")
+
+[node name="Label" type="Label" parent="."]
+offset_left = -3.0
+offset_top = 69.0
+offset_right = 37.0
+offset_bottom = 92.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "Name"
+
+[node name="Label2" type="Label" parent="."]
+offset_left = -4.0
+offset_top = 88.0
+offset_right = 36.0
+offset_bottom = 111.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "Current"
+
+[node name="Label3" type="Label" parent="."]
+offset_left = -3.0
+offset_top = 107.0
+offset_right = 57.0
+offset_bottom = 130.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "Loading"
