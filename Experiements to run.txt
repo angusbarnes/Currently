@@ -1,0 +1,12 @@
+Simulation time vs number of simulated nodes
+
+Cross validation with known values
+
+Accuracy vs number of simulated nodes
+
+
+State estimation -> review the literatures
+
+limitation with radial grid
+
+customers of today can be prosumers of tomorrow
