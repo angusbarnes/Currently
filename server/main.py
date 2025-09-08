@@ -44,6 +44,7 @@ setup_colored_logging()
 
 logging.basicConfig(level=logging.DEBUG, format='[%(levelname)s]: %(message)s')
 logger = logging.getLogger(__name__)
+logging.disable(logging.CRITICAL)
 
 # The entry point for the Currently Data Server
 # We load these dependencies after logging config to ensure uniform log format
@@ -82,74 +83,7 @@ async def stream_modbus_logs(websocket):
 
             site_totals = reading_set.pop() #TODO: Make this more resilient
 
-            remaining_rating = total_rating
-
-            loaded_subs = []
-            allocated_q = 0
-            allocated_p = 0
-            for i, reading in enumerate(reading_set):
-                # If we have unreliable data we should skip this sub and simulate it instead
-                try:
-                    p = reading["power_active"]/1000
-                    q = reading["power_reactive"]/1000
-                except TypeError:
-                    continue
-
-                loaded_subs.append(int(reading["device_name"]))
-
-                allocated_p += p
-                allocated_q += q
-                remaining_rating -= nodes[int(reading["device_name"])].rating
-                pp.create_load(
-                    net, 
-                    nodes[int(reading["device_name"])].node_object, 
-                    p_mw=p, 
-                    q_mvar=q, 
-                    scaling=GLOBAL_SCALING_FACTOR,
-                    name=nodes[int(reading["device_name"])].name
-                )
-
-                nodes[int(reading["device_name"])].is_online = True
-
-                logger.debug(f"Loaded {int(reading['device_name'])} with P={reading['power_active']/1000}, Q={reading['power_reactive']/1000}")
-
-            logger.info(f"Added {i+1} loads from timestamp: {site_totals['timestamp']}")
-            logger.debug(f"Loaded: {loaded_subs}")
-
-            remaining_p = (site_totals['ansto_total_kw']/1000) - allocated_p
-            remaining_q = (site_totals['ansto_total_kvar']/1000) - allocated_q
-            logger.debug(f"Calculating remaining load as: P={remaining_p:.4f} MW, Q={remaining_q:.4f} MVAr")
-
-
-            simulated_subs = []
-            for id, node in nodes.items():
-                # We need to create loads for any that do not have readings
-                # The act of creating a load should invalidate the online status of a substation
-                # We also skip the slack bus
-                if id not in loaded_subs and id != 0:
-                    pp.create_load(
-                        net, 
-                        node.node_object, 
-                        p_mw= remaining_p * node.rating/remaining_rating, 
-                        q_mvar= remaining_q * node.rating/remaining_rating, 
-                        scaling=GLOBAL_SCALING_FACTOR,
-                        name=node.name
-                    )
-                    simulated_subs.append(id)
-
-                    node.is_online = False
-            logger.info(f"Created {len(simulated_subs)} loads from site-wide scaling.")
-            logger.debug(f"Loaded: {simulated_subs}")
-            logger.notice(f"Processing load flow for timestamp: {Fore.LIGHTGREEN_EX}{site_totals['timestamp']}{Fore.RESET}")
-            start = time.time()
-            pp.runpp(net)
-            stop = time.time()
-
-
-            update_lines_from_results(lines, net.res_line)
-            update_nodes_from_results(nodes, net.res_bus)
-
-            exec_time = stop - start
+            exec_time = evaluate_load_flow_with_known_loads(nodes, lines, net, reading_set, site_totals, total_rating)
 
             if exec_time > 0.7:
                 logger.warning(f"Main load flow evaluation time = {Fore.LIGHTRED_EX}{exec_time:.3f}{Fore.RESET} seconds.")
@@ -161,7 +95,6 @@ async def stream_modbus_logs(websocket):
             data["line_data"] = serialise_list(list(lines.values()))
             data["node_data"] = serialise_list(list(nodes.values()))
             data["site_totals"] = site_totals
-            # report_bus_voltages(net, 3)
             # print(site_totals)
             # report_line_loadings(net, 3)
             packet = json.dumps(data, default=str)
@@ -171,6 +104,76 @@ async def stream_modbus_logs(websocket):
 
     except websockets.exceptions.ConnectionClosed:
         print("Client disconnected")
+
+def evaluate_load_flow_with_known_loads(nodes, lines, net, reading_set, site_totals, total_rating):
+    remaining_rating = total_rating
+    loaded_subs = []
+    allocated_q = 0
+    allocated_p = 0
+    for i, reading in enumerate(reading_set):
+                # If we have unreliable data we should skip this sub and simulate it instead
+        try:
+            p = reading["power_active"]/1000
+            q = reading["power_reactive"]/1000
+        except TypeError:
+            continue
+
+        loaded_subs.append(int(reading["device_name"]))
+
+        allocated_p += p
+        allocated_q += q
+        remaining_rating -= nodes[int(reading["device_name"])].rating
+        pp.create_load(
+            net, 
+            nodes[int(reading["device_name"])].node_object, 
+            p_mw=p, 
+            q_mvar=q, 
+            scaling=GLOBAL_SCALING_FACTOR,
+            name=nodes[int(reading["device_name"])].name
+        )
+
+        nodes[int(reading["device_name"])].is_online = True
+
+        logger.debug(f"Loaded {int(reading['device_name'])} with P={reading['power_active']/1000}, Q={reading['power_reactive']/1000}")
+
+    logger.info(f"Added {i+1} loads from timestamp: {site_totals['timestamp']}")
+    logger.debug(f"Loaded: {loaded_subs}")
+
+    remaining_p = (site_totals['ansto_total_kw']/1000) - allocated_p
+    remaining_q = (site_totals['ansto_total_kvar']/1000) - allocated_q
+    logger.debug(f"Calculating remaining load as: P={remaining_p:.4f} MW, Q={remaining_q:.4f} MVAr")
+
+
+    simulated_subs = []
+    for id, node in nodes.items():
+        # We need to create loads for any that do not have readings
+        # The act of creating a load should invalidate the online status of a substation
+        # We also skip the slack bus
+        if id not in loaded_subs and id != 0:
+            pp.create_load(
+                net, 
+                node.node_object, 
+                p_mw= remaining_p * node.rating/remaining_rating, 
+                q_mvar= remaining_q * node.rating/remaining_rating, 
+                scaling=GLOBAL_SCALING_FACTOR,
+                name=node.name
+            )
+            simulated_subs.append(id)
+
+            node.is_online = False
+    logger.info(f"Created {len(simulated_subs)} loads from site-wide scaling.")
+    logger.debug(f"Loaded: {simulated_subs}")
+    logger.notice(f"Processing load flow for timestamp: {Fore.LIGHTGREEN_EX}{site_totals['timestamp']}{Fore.RESET}")
+    start = time.time()
+    pp.runpp(net)
+    stop = time.time()
+
+
+    update_lines_from_results(lines, net.res_line)
+    update_nodes_from_results(nodes, net.res_bus)
+
+    exec_time = stop - start
+    return exec_time
 
 async def main():
     server = await websockets.serve(stream_modbus_logs, "127.0.0.1", 8080)
