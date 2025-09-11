@@ -145,6 +145,57 @@ def process_batch(data, n_values=(3, 5, 10), out_file="results_summary.csv"):
 
     return rows
 
+import concurrent.futures
+
+def process_substation(SUBSTATION, DB_PATH, EXPECTED_DELTA):
+    data = load_timeseries(SUBSTATION, "power_active", DB_PATH)
+    data_points = len(data)
+    print(f"Loaded {data_points} data points for substation: {SUBSTATION}")
+    continuity_errors = count_continuity_errors(data, EXPECTED_DELTA)
+
+    results = process_batch(
+        data,
+        n_values=range(2, 151),
+        out_file=f"{SUBSTATION}_results.csv"
+    )
+
+    print(f"Substation reliability is found to be "
+          f"{(1.0 - continuity_errors/data_points) * 100:.2f}% "
+          f"from {data_points} intervals")
+
+    return results
+
+def run_all(subs_to_test, DB_PATH, EXPECTED_DELTA):
+    global_results = []
+
+    # We must use the ProcessPool executor as it gets us around the pesky GIL
+    # Launch new process per substations.
+    # I think this is ok because in theory all these operations should be entirely independent
+    # FUTURE REFERENCE: https://docs.python.org/3/library/concurrent.futures.html
+    # https://www.geeksforgeeks.org/python/processpoolexecutor-class-in-python/
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        futures = {
+            executor.submit(process_substation, sub, DB_PATH, EXPECTED_DELTA): sub
+            for sub in subs_to_test
+        }
+
+        for future in concurrent.futures.as_completed(futures):
+            substation = futures[future]
+            try:
+                results = future.result()
+                global_results.extend(results)
+            except Exception as e:
+                print(f"Substation {substation} failed: {e}")
+
+    with open("global_results.csv", "w", newline="") as results_file:
+        writer = csv.writer(results_file)
+        writer.writerow([
+            "n",
+            "wMAPE_MA", "wMAPE_Lin", "wMAPE_Quad",
+            "AvgError_MA", "AvgError_Lin", "AvgError_Quad"
+        ])
+        writer.writerows(global_results)
+
 if __name__ == "__main__":
 
     # Every sample has a chance of being dropped or lost in the network
@@ -169,26 +220,5 @@ if __name__ == "__main__":
         "102901", 
         "102902"
     ]
-
-    global_results = []
-    for sub in subs_to_test:
-        SUBSTATION = sub
-        data = load_timeseries(SUBSTATION, "power_active", DB_PATH)
-        data_points = len(data)
-        print(f"Loaded {data_points} data points for substation: {SUBSTATION}")
-        continuity_errors = count_continuity_errors(data, EXPECTED_DELTA)
-
-        results = process_batch(data, n_values=range(2,151),out_file=f"{SUBSTATION}_results.csv")
-        global_results.extend
-
-        print(f"Substation reliability is found to be {(1.0 - continuity_errors/data_points) * 100:.2f}% from {data_points} intervals")
-    
-    with open(f"global_results.csv", 'w', newline='') as results_file:
-        writer = csv.writer(results_file)
-        writer.writerow([
-            "n", 
-            "wMAPE_MA", "wMAPE_Lin", "wMAPE_Quad",
-            "AvgError_MA", "AvgError_Lin", "AvgError_Quad"
-        ])
-        writer.writerows(global_results)
+    run_all(subs_to_test, DB_PATH, EXPECTED_DELTA)
 
