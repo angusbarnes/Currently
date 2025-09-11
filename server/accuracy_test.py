@@ -371,7 +371,106 @@ def plot_typical_profile(data, subname, mode="daily"):
     plt.tight_layout()
     plt.savefig(f"graphs/{subname}_profile.png", dpi=300)
 
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+def simulate_gilbert_elliot(num_steps=7*96, 
+                            p_good_to_bad=0.04, 
+                            p_bad_to_good=0.3, 
+                            loss_good=0.1, 
+                            loss_bad=0.8, 
+                            seed=42):
+    """
+    Simulate packet reception/loss using the Gilbert-Elliot model.
+    
+    Returns:
+        states: list of 'good'/'bad' states
+        losses: list of True (lost) / False (received)
+    """
+    rng = np.random.default_rng(seed)
+    states = []
+    losses = []
+
+    state = 'good'
+    for _ in range(num_steps):
+        # Determine loss
+        if state == 'good':
+            lost = rng.random() < loss_good
+        else:
+            lost = rng.random() < loss_bad
+        losses.append(lost)
+        states.append(state)
+
+        # Transition state
+        if state == 'good' and rng.random() < p_good_to_bad:
+            state = 'bad'
+        elif state == 'bad' and rng.random() < p_bad_to_good:
+            state = 'good'
+
+    return np.array(states), np.array(losses)
+
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+def simulate_gilbert_elliot(num_steps=7*96, p_good_to_bad=0.04, p_bad_to_good=0.3, loss_good=0.1, loss_bad=0.8):
+    rng = np.random.default_rng(42) # just wanna make the graph the same each run
+    states = []
+    losses = []
+
+    state = 'good'
+    for _ in range(num_steps):
+        if state == 'good':
+            lost = rng.random() < loss_good
+        else:
+            lost = rng.random() < loss_bad
+        losses.append(lost)
+        states.append(state)
+
+        if state == 'good' and rng.random() < p_good_to_bad:
+            state = 'bad'
+        elif state == 'bad' and rng.random() < p_bad_to_good:
+            state = 'good'
+
+    return np.array(states), np.array(losses)
+
+def plot_with_bands(states, losses, readings_per_day=96):
+    num_steps = len(states)
+    t = np.arange(num_steps) / readings_per_day
+    
+    fig, ax = plt.subplots(figsize=(12,4))
+
+    in_bad = states == 'bad'
+    start = None
+    for i in range(num_steps):
+        if in_bad[i] and start is None:
+            start = t[i]
+        elif not in_bad[i] and start is not None:
+            span = ax.axvspan(start, t[i], color="black", alpha=0.6)
+            start = None
+    if start is not None:  # handle trailing bad patch
+        ax.axvspan(start, t[-1], color="black", alpha=0.6)
+
+    # # Plot received/lost readings
+    # ax.scatter(t[~losses], np.ones(np.sum(~losses)), 
+    #            color="green", marker="o", label="Received", s=10)
+    # ax.scatter(t[losses], np.ones(np.sum(losses)), 
+    #            color="red", marker="x", label="Lost", s=20)
+
+    ax.set_ylim(0.5, 1.5)
+    ax.set_yticks([])
+    ax.set_xlabel("Time (days)")
+    ax.set_title("Gilbert-Elliot Simulation with Bad State Bands")
+    ax.legend([span], ["Loss"])
+    plt.tight_layout()
+    plt.savefig(f"graphs/GE_test.png", dpi=300)
+
+
 if __name__ == "__main__":
+
+    states, losses = simulate_gilbert_elliot()
+    plot_with_bands(states, losses)
 
     # Every sample has a chance of being dropped or lost in the network
     ## WE ONLY TRACK A SHORT TERM CONTEXT WINDOW SO WE ARE ONLY TESTING ON SHORT DISCRETE WINDOWS
@@ -397,20 +496,20 @@ if __name__ == "__main__":
     ]
 
 
-    for sub in subs_to_test:
-        data = load_timeseries(sub, "power_apparent", DB_PATH)
-        #run_all(subs_to_test, DB_PATH, EXPECTED_DELTA)
-        result = analyze_weekly_load(data, sub)
-        if result['7d_autocorrelation'] < 0.6 and result['24h_autocorrelation'] < 0.6:
-            print(f"Substation {sub} should be classified as having an ACYCLIC load profile = {result['7d_autocorrelation']}, {result['24h_autocorrelation']}")
-            plot_typical_profile(data, sub, mode="weekly")
-        elif result['7d_autocorrelation'] > result['24h_autocorrelation']:
-            print(f"Substation {sub} should be classified as having a HEBDOMADAL load profile = {result['7d_autocorrelation']}")
-            plot_typical_profile(data, sub, mode="daily")
-        else:
-            print(f"Substation {sub} should be classified as having a QUOTIDIAN load profile = {result['24h_autocorrelation']}")
-            plot_typical_profile(data, sub, mode="daily")
+    # for sub in subs_to_test:
+    #     data = load_timeseries(sub, "power_apparent", DB_PATH)
+    #     #run_all(subs_to_test, DB_PATH, EXPECTED_DELTA)
+    #     result = analyze_weekly_load(data, sub)
+    #     if result['7d_autocorrelation'] < 0.6 and result['24h_autocorrelation'] < 0.6:
+    #         print(f"Substation {sub} should be classified as having an ACYCLIC load profile = {result['7d_autocorrelation']}, {result['24h_autocorrelation']}")
+    #         plot_typical_profile(data, sub, mode="weekly")
+    #     elif result['7d_autocorrelation'] > result['24h_autocorrelation']:
+    #         print(f"Substation {sub} should be classified as having a HEBDOMADAL load profile = {result['7d_autocorrelation']}")
+    #         plot_typical_profile(data, sub, mode="daily")
+    #     else:
+    #         print(f"Substation {sub} should be classified as having a QUOTIDIAN load profile = {result['24h_autocorrelation']}")
+    #         plot_typical_profile(data, sub, mode="daily")
 
-        plot_wmape_from_csv(sub)
+    #     plot_wmape_from_csv(sub)
         
 
