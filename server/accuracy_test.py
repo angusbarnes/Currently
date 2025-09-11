@@ -124,6 +124,7 @@ def analyze_weekly_load(data_tuples, substation):
 # Use ML method to fill longer lasting data outages
 # After 5 consecutive missing values, use this method
 # This will  just repeat a weekly, context invariant prediction
+# Use a cyclic mean baseline + time local adjustment
 
 
 
@@ -325,6 +326,51 @@ def plot_wmape_from_csv(substation):
     plt.savefig(f"graphs/{substation}_extrapolation.png", dpi=300)
     plt.close()
 
+def plot_typical_profile(data, subname, mode="daily"):
+    df = pd.DataFrame(data, columns=["timestamp", "load"])
+    df["timestamp"] = pd.to_datetime(df["timestamp"])
+    df = df.set_index("timestamp")
+    
+    # Remove NaN
+    df = df.dropna(subset=["load"])
+
+    if mode == "daily":
+        df["time_of_day"] = df.index.hour * 60 + df.index.minute
+        grouped = df.groupby("time_of_day")["load"]
+        mean_profile = grouped.mean()
+        std_profile = grouped.std()
+
+        x = mean_profile.index / 60.0 
+        xlabel = "Hour of day"
+        title = f"Typical Quotidian Load Profile ({subname})"
+
+    elif mode == "weekly":
+        df["week_minute"] = df.index.dayofweek * 1440 + df.index.hour * 60 + df.index.minute
+        grouped = df.groupby("week_minute")["load"]
+        mean_profile = grouped.mean()
+        std_profile = grouped.std()
+
+        x = mean_profile.index / 60.0
+        xlabel = "Hour of week"
+        title = "Typical Hebdomadal Load Profile"
+
+    else:
+        raise ValueError("mode must be 'daily' or 'weekly'")
+
+    # Plot
+    plt.figure(figsize=(12, 6))
+    plt.plot(x, mean_profile, label="Mean load", color="blue")
+    plt.fill_between(x, mean_profile - std_profile, mean_profile + std_profile,
+                     color="blue", alpha=0.2, label="±1 Std Dev")
+
+    plt.xlabel(xlabel)
+    plt.ylabel("Load")
+    plt.title(title)
+    plt.grid(True, linestyle="--", alpha=0.6)
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(f"graphs/{subname}_profile.png", dpi=300)
+
 if __name__ == "__main__":
 
     # Every sample has a chance of being dropped or lost in the network
@@ -353,14 +399,18 @@ if __name__ == "__main__":
 
     for sub in subs_to_test:
         data = load_timeseries(sub, "power_apparent", DB_PATH)
-        # run_all(subs_to_test, DB_PATH, EXPECTED_DELTA)
+        #run_all(subs_to_test, DB_PATH, EXPECTED_DELTA)
         result = analyze_weekly_load(data, sub)
         if result['7d_autocorrelation'] < 0.6 and result['24h_autocorrelation'] < 0.6:
             print(f"Substation {sub} should be classified as having an ACYCLIC load profile = {result['7d_autocorrelation']}, {result['24h_autocorrelation']}")
+            plot_typical_profile(data, sub, mode="weekly")
         elif result['7d_autocorrelation'] > result['24h_autocorrelation']:
             print(f"Substation {sub} should be classified as having a HEBDOMADAL load profile = {result['7d_autocorrelation']}")
+            plot_typical_profile(data, sub, mode="daily")
         else:
             print(f"Substation {sub} should be classified as having a QUOTIDIAN load profile = {result['24h_autocorrelation']}")
+            plot_typical_profile(data, sub, mode="daily")
 
         plot_wmape_from_csv(sub)
+        
 
