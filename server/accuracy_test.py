@@ -171,7 +171,7 @@ if __name__ == "__main__":
     ]
 
     global_results = []
-    for sub in tqdm(subs_to_test):
+    for sub in subs_to_test:
         SUBSTATION = sub
         data = load_timeseries(SUBSTATION, "power_active", DB_PATH)
         data_points = len(data)
