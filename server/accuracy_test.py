@@ -7,6 +7,13 @@ import random
 import math
 import csv
 from tqdm import tqdm
+import matplotlib.pyplot as plt
+from statsmodels.tsa.stattools import acf
+from sklearn.linear_model import LinearRegression
+import scienceplots
+import matplotlib.ticker as ticker
+plt.rcParams['font.family'] = ['Times New Roman', 'serif'] 
+plt.rcParams['font.size'] = 12
 
 DB_PATH = "../sensitive/modbus_data.db"
 
@@ -35,6 +42,78 @@ def load_timeseries(device_name: str, column: str, db_path: str = DB_PATH):
     return list(df.itertuples(index=False, name=None))
 
 
+# Please forgive me programming overlords, for this function is a true
+# spaghetti code abomination (As data science code often is)
+def analyze_weekly_load(data_tuples, substation):
+
+    df = pd.DataFrame(data_tuples, columns=['timestamp', 'load'])
+    df['timestamp'] = pd.to_datetime(df['timestamp'])
+    df = df.sort_values('timestamp').reset_index(drop=True)
+
+    df['load'] = df['load'].interpolate(method='linear')
+    df = df.dropna(subset=['load'])
+
+    intervals_per_hour = 4  # 15-minute intervals
+    max_lag = 14 * 24 * intervals_per_hour
+
+    acf_vals = acf(df['load'], nlags=max_lag, fft=True)
+
+    #plt.figure(figsize=(12,5))
+    fig, ax = plt.subplots(1, 1)
+    fig.set_figwidth(12)
+    fig.set_figheight(5)
+    ax.plot(np.arange(max_lag + 1) / intervals_per_hour, acf_vals, color='0.2', linewidth=0.8)
+    plt.axvline(24, color='red', linestyle='--', label='1 Day')
+    plt.axvline(7*24, color='green', linestyle='--', label='7 days')
+    plt.xlabel('Lag (hours)')
+    plt.ylabel('Autocorrelation')
+    plt.title('Autocorrelation of Load')
+    plt.grid(True, linestyle="--", alpha=0.6)
+    plt.legend()
+    loc = ticker.MultipleLocator(base=12)
+    ax.xaxis.set_major_locator(loc)
+    ax.set_xlim(0, 335)
+    plt.savefig(f'graphs/{substation}_acf.png', dpi=300)
+    #plt.show()
+
+    df['day_of_week'] = df['timestamp'].dt.dayofweek  # 0=Monday
+    df['time_of_day'] = df['timestamp'].dt.hour + df['timestamp'].dt.minute / 60
+
+    weekly_stats = df.groupby(['day_of_week', 'time_of_day'])['load'].agg(
+        avg='mean',
+        p10=lambda x: np.percentile(x, 10),
+        p90=lambda x: np.percentile(x, 90)
+    ).unstack()
+
+    # # Plot average weekly profile
+    # weekly_stats['avg'].plot(figsize=(12,6))
+    # plt.title('Baseline Weekly Profile (Average Load by Day & Time)')
+    # plt.xlabel('Day of Week')
+    # plt.ylabel('Load')
+    # plt.show()
+
+    # Returning function duplicates might get a bit cooked
+    # May need to rethink this approach
+    def typical_load_for_timestamps(timestamps):
+        ts_df = pd.DataFrame({'timestamp': pd.to_datetime(timestamps)})
+        ts_df['day_of_week'] = ts_df['timestamp'].dt.dayofweek
+        ts_df['time_of_day'] = ts_df['timestamp'].dt.hour + ts_df['timestamp'].dt.minute / 60
+
+        merged = ts_df.merge(
+            weekly_stats.reset_index(),
+            how='left',
+            on=['day_of_week', 'time_of_day']
+        )
+
+        return merged[['timestamp', 'avg', 'p10', 'p90']]
+
+    return {
+        'df': df,
+        'weekly_stats': weekly_stats,
+        'typical_load_fn': typical_load_for_timestamps,
+        '24h_autocorrelation': acf_vals[24*4],
+        '7d_autocorrelation': acf_vals[24*4*7],
+    }
 
 # Transformer Rating Allocation
 # This is used for completely offline substations
@@ -107,7 +186,7 @@ def process_batch(data, n_values=(3, 5, 10), out_file="results_summary.csv"):
 
             # Quadratic prediction
             if n >= 3:
-                coeffs = np.polyfit(x, y, 2)  # coeffs = [c2, c1, c0]
+                coeffs = np.polyfit(x, y, 2)
                 quad_pred = coeffs[0]*n**2 + coeffs[1]*n + coeffs[2]
                 abs_errors_quad.append(abs(actual_next - quad_pred))
                 actuals_quad.append(abs(actual_next))
@@ -118,7 +197,7 @@ def process_batch(data, n_values=(3, 5, 10), out_file="results_summary.csv"):
             actuals_lin.append(abs(actual_next))
 
         def safe_wmape(errors, actuals):
-            return sum(errors) / sum(actuals) if sum(actuals) > 0 else np.nan
+            return sum(errors) / sum(actuals) if sum(actuals) > 0 else ""
 
         wMAPE_ma = safe_wmape(abs_errors_ma, actuals_ma)
         wMAPE_lin = safe_wmape(abs_errors_lin, actuals_lin)
@@ -148,7 +227,7 @@ def process_batch(data, n_values=(3, 5, 10), out_file="results_summary.csv"):
 import concurrent.futures
 
 def process_substation(SUBSTATION, DB_PATH, EXPECTED_DELTA):
-    data = load_timeseries(SUBSTATION, "power_active", DB_PATH)
+    data = load_timeseries(SUBSTATION, "power_active", DB_PATH)[0:4000]
     data_points = len(data)
     print(f"Loaded {data_points} data points for substation: {SUBSTATION}")
     continuity_errors = count_continuity_errors(data, EXPECTED_DELTA)
@@ -196,6 +275,56 @@ def run_all(subs_to_test, DB_PATH, EXPECTED_DELTA):
         ])
         writer.writerows(global_results)
 
+def plot_wmape_from_csv(substation):
+    df = pd.read_csv(f"{substation}_results.csv")
+    df = df.apply(pd.to_numeric, errors="coerce")
+    n_vals = df["n"].values
+
+    series = {
+        "Moving Average": df["wMAPE_MA"].values,
+        "Linear Extrapolation": df["wMAPE_Lin"].values,
+        "Quadratic Extrapolation": df["wMAPE_Quad"].values,
+    }
+
+    # Plot the series
+    plt.figure(figsize=(10, 6))
+    for name, y in series.items():
+        plt.plot(n_vals, y, label=name, alpha=0.7)
+
+    # Detect intersections
+    methods = list(series.keys())
+    for i in range(len(methods)):
+        for j in range(i+1, len(methods)):
+            m1, m2 = methods[i], methods[j]
+            y1, y2 = series[m1], series[m2]
+
+            diff = y1 - y2
+            sign_change = np.where(np.sign(diff[:-1]) != np.sign(diff[1:]))[0]
+
+            for idx in sign_change:
+                x0, x1 = n_vals[idx], n_vals[idx+1]
+                y0, y1_diff = diff[idx], diff[idx+1]
+                if y1_diff - y0 != 0:
+                    x_cross = x0 - y0 * (x1 - x0) / (y1_diff - y0)
+                else:
+                    x_cross = x0
+
+                plt.axvline(x_cross, color="gray", linestyle="--", alpha=0.5)
+                plt.text(
+                    x_cross - 0.5, plt.ylim()[1]*0.95,
+                    f"{x_cross:.1f}", rotation=90,
+                    va="top", ha="center", fontsize=9, color="black"
+                )
+
+    plt.xlabel("Window size (n)")
+    plt.ylabel("wMAPE")
+    plt.title(f"wMAPE vs Window Size ({substation})")
+    plt.legend()
+    plt.grid(True, linestyle="--", alpha=0.6)
+    plt.tight_layout()
+    plt.savefig(f"graphs/{substation}_extrapolation.png", dpi=300)
+    plt.close()
+
 if __name__ == "__main__":
 
     # Every sample has a chance of being dropped or lost in the network
@@ -220,5 +349,18 @@ if __name__ == "__main__":
         "102901", 
         "102902"
     ]
-    run_all(subs_to_test, DB_PATH, EXPECTED_DELTA)
+
+
+    for sub in subs_to_test:
+        data = load_timeseries(sub, "power_apparent", DB_PATH)
+        # run_all(subs_to_test, DB_PATH, EXPECTED_DELTA)
+        result = analyze_weekly_load(data, sub)
+        if result['7d_autocorrelation'] < 0.6 and result['24h_autocorrelation'] < 0.6:
+            print(f"Substation {sub} should be classified as having an ACYCLIC load profile = {result['7d_autocorrelation']}, {result['24h_autocorrelation']}")
+        elif result['7d_autocorrelation'] > result['24h_autocorrelation']:
+            print(f"Substation {sub} should be classified as having a HEBDOMADAL load profile = {result['7d_autocorrelation']}")
+        else:
+            print(f"Substation {sub} should be classified as having a QUOTIDIAN load profile = {result['24h_autocorrelation']}")
+
+        plot_wmape_from_csv(sub)
 
