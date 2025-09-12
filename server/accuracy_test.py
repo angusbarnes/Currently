@@ -158,17 +158,11 @@ def analyze_weekly_load(data_tuples, substation):
 # Consider last 5 data points, project out to 5 data points
 
 
-def wmape(actual, predicted):
-    if len(actual) != len(predicted):
-        raise ValueError("Actual and predicted must have the same length")
-
-    total_abs_error = sum(abs(a - p) for a, p in zip(actual, predicted))
-    total_actual = sum(abs(a) for a in actual)
-
-    if total_actual == 0:
-        return float("nan")
-
-    return (total_abs_error / total_actual) * 100
+def wMAPE(actual, predicted):
+    actual = np.array(actual)
+    predicted = np.array(predicted)
+    mask = actual != 0
+    return np.sum(np.abs(actual[mask] - predicted[mask])) / np.sum(np.abs(actual[mask]))
 
 
 def count_continuity_errors(data, expected_delta):
@@ -564,17 +558,17 @@ if __name__ == "__main__":
     for sub in subs_to_test:
         data = load_timeseries(sub, "power_apparent", DB_PATH)
         
-        # result = analyze_weekly_load(data, sub)
-        # if result['7d_autocorrelation'] < 0.6 and result['24h_autocorrelation'] < 0.6:
-        #     print(f"Substation {sub} should be classified as having an ACYCLIC load profile = {result['7d_autocorrelation']}, {result['24h_autocorrelation']}")
-        #     plot_typical_profile(data, sub, mode="weekly")
-        # elif result['7d_autocorrelation'] > result['24h_autocorrelation']:
-        #     print(f"Substation {sub} should be classified as having a HEBDOMADAL load profile = {result['7d_autocorrelation']}")
-        #     plot_typical_profile(data, sub, mode="daily")
-        # else:
-        #     print(f"Substation {sub} should be classified as having a QUOTIDIAN load profile = {result['24h_autocorrelation']}")
-        #     plot_typical_profile(data, sub, mode="daily")
+        result = analyze_weekly_load(data, sub)
+        if result['7d_autocorrelation'] < 0.6 and result['24h_autocorrelation'] < 0.6:
+            print(f"Substation {sub} should be classified as having an ACYCLIC load profile = {result['7d_autocorrelation']}, {result['24h_autocorrelation']}")
+            plot_typical_profile(data, sub, mode="weekly")
+        elif result['7d_autocorrelation'] > result['24h_autocorrelation']:
+            print(f"Substation {sub} should be classified as having a HEBDOMADAL load profile = {result['7d_autocorrelation']}")
+            plot_typical_profile(data, sub, mode="daily")
+        else:
+            print(f"Substation {sub} should be classified as having a QUOTIDIAN load profile = {result['24h_autocorrelation']}")
+            plot_typical_profile(data, sub, mode="daily")
 
         plot_daily_max_by_year(data, sub)
 
-        # plot_wmape_from_csv(sub)
+        plot_wmape_from_csv(sub)
