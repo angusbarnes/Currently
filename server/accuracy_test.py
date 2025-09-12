@@ -371,44 +371,37 @@ def plot_typical_profile(data, subname, mode="daily"):
     plt.tight_layout()
     plt.savefig(f"graphs/{subname}_profile.png", dpi=300)
 
+import calendar
 
-import numpy as np
-import matplotlib.pyplot as plt
+def plot_daily_max_by_year(data, sub):
+    df = pd.DataFrame(data, columns=["timestamp", "value"])
+    df["timestamp"] = pd.to_datetime(df["timestamp"])
+    df.set_index("timestamp", inplace=True)
 
-def simulate_gilbert_elliot(num_steps=7*96, 
-                            p_good_to_bad=0.04, 
-                            p_bad_to_good=0.3, 
-                            loss_good=0.1, 
-                            loss_bad=0.8, 
-                            seed=42):
-    """
-    Simulate packet reception/loss using the Gilbert-Elliot model.
-    
-    Returns:
-        states: list of 'good'/'bad' states
-        losses: list of True (lost) / False (received)
-    """
-    rng = np.random.default_rng(seed)
-    states = []
-    losses = []
+    daily_max = df.resample("D").max()
 
-    state = 'good'
-    for _ in range(num_steps):
-        # Determine loss
-        if state == 'good':
-            lost = rng.random() < loss_good
-        else:
-            lost = rng.random() < loss_bad
-        losses.append(lost)
-        states.append(state)
+    daily_max["year"] = daily_max.index.year
+    daily_max["day_of_year"] = daily_max.index.dayofyear
 
-        # Transition state
-        if state == 'good' and rng.random() < p_good_to_bad:
-            state = 'bad'
-        elif state == 'bad' and rng.random() < p_bad_to_good:
-            state = 'good'
+    pivot = daily_max.pivot(index="day_of_year", columns="year", values="value")
 
-    return np.array(states), np.array(losses)
+    month_starts = [pd.Timestamp(f"2001-{m:02d}-01").day_of_year for m in range(1, 13)]
+    month_labels = [calendar.month_abbr[m] for m in range(1, 13)]
+
+    plt.figure(figsize=(12, 6))
+    for year in pivot.columns:
+        plt.plot(pivot.index, pivot[year], label=str(year))
+
+    plt.xlabel("Month")
+    plt.ylabel("Daily Maximum Demand (MVA)")
+    plt.title(f"Daily Maximum Demand by Year ({sub})")
+    plt.legend()
+    plt.grid(True, linestyle="--", alpha=0.6)
+
+    plt.xticks(month_starts, month_labels)
+
+    plt.tight_layout()
+    plt.savefig(f"graphs/{sub}_max_demands.png", dpi=300)
 
 
 import numpy as np
@@ -469,7 +462,7 @@ def plot_with_bands(states, losses, readings_per_day=96):
 
 if __name__ == "__main__":
 
-    states, losses = simulate_gilbert_elliot()
+    states, losses = simulate_gilbert_elliot(p_good_to_bad=0.02, p_bad_to_good=0.3)
     plot_with_bands(states, losses)
 
     # Every sample has a chance of being dropped or lost in the network
@@ -496,20 +489,22 @@ if __name__ == "__main__":
     ]
 
 
-    # for sub in subs_to_test:
-    #     data = load_timeseries(sub, "power_apparent", DB_PATH)
-    #     #run_all(subs_to_test, DB_PATH, EXPECTED_DELTA)
-    #     result = analyze_weekly_load(data, sub)
-    #     if result['7d_autocorrelation'] < 0.6 and result['24h_autocorrelation'] < 0.6:
-    #         print(f"Substation {sub} should be classified as having an ACYCLIC load profile = {result['7d_autocorrelation']}, {result['24h_autocorrelation']}")
-    #         plot_typical_profile(data, sub, mode="weekly")
-    #     elif result['7d_autocorrelation'] > result['24h_autocorrelation']:
-    #         print(f"Substation {sub} should be classified as having a HEBDOMADAL load profile = {result['7d_autocorrelation']}")
-    #         plot_typical_profile(data, sub, mode="daily")
-    #     else:
-    #         print(f"Substation {sub} should be classified as having a QUOTIDIAN load profile = {result['24h_autocorrelation']}")
-    #         plot_typical_profile(data, sub, mode="daily")
+    for sub in subs_to_test:
+        data = load_timeseries(sub, "power_apparent", DB_PATH)
+        run_all(subs_to_test, DB_PATH, EXPECTED_DELTA)
+        # result = analyze_weekly_load(data, sub)
+        # if result['7d_autocorrelation'] < 0.6 and result['24h_autocorrelation'] < 0.6:
+        #     print(f"Substation {sub} should be classified as having an ACYCLIC load profile = {result['7d_autocorrelation']}, {result['24h_autocorrelation']}")
+        #     plot_typical_profile(data, sub, mode="weekly")
+        # elif result['7d_autocorrelation'] > result['24h_autocorrelation']:
+        #     print(f"Substation {sub} should be classified as having a HEBDOMADAL load profile = {result['7d_autocorrelation']}")
+        #     plot_typical_profile(data, sub, mode="daily")
+        # else:
+        #     print(f"Substation {sub} should be classified as having a QUOTIDIAN load profile = {result['24h_autocorrelation']}")
+        #     plot_typical_profile(data, sub, mode="daily")
 
-    #     plot_wmape_from_csv(sub)
+        plot_daily_max_by_year(data, sub)
+
+        #plot_wmape_from_csv(sub)
         
 
