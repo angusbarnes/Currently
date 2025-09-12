@@ -9,6 +9,8 @@ import random
 import csv
 import time
 import matplotlib.pyplot as plt
+plt.rcParams['font.family'] = ['Times New Roman', 'serif'] 
+plt.rcParams['font.size'] = 12
 
 SAMPLES = 100
 TOTAL_NODES = 37
@@ -21,10 +23,9 @@ if __name__ == "__main__":
     lines = load_lines_from_disk("links.csv")
     net, total_rating = build_network(nodes, lines, cable_types)
 
-    # Use 50 readings in the most data dense section
     readings = list(itertools.islice(
         database.fetch_batches("../sensitive/modbus_data.db", "2023-12-29 04:45:00"),
-        500
+        100
     ))
 
     results = []  
@@ -69,8 +70,8 @@ if __name__ == "__main__":
                 writer.writerow(row)
                 results.append(row)
 
-    simulated_nodes = [r["simulated_nodes"] for r in results]
-    exec_times = [r["exec_time"] for r in results]
+    simulated_nodes = [r["simulated_nodes"] for r in results[1:]]
+    exec_times = [r["exec_time"] for r in results[1:]]
 
     plt.figure(figsize=(8, 6))
     plt.scatter(simulated_nodes, exec_times, alpha=0.6, edgecolor="k")
@@ -89,6 +90,6 @@ if __name__ == "__main__":
         xs = np.linspace(min(simulated_nodes), max(simulated_nodes), 100)
         plt.plot(xs, poly(xs), "r--", label=f"Trend: y={coeffs[0]:.4f}x+{coeffs[1]:.4f}")
         plt.legend()
+        plt.grid(True, linestyle="--", alpha=0.6)
 
-    plt.savefig("experiment_plot.png", dpi=150)
-    plt.show()
+    plt.savefig("graphs/perf_test.png", dpi=300)
