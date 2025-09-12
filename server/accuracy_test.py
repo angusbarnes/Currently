@@ -12,17 +12,32 @@ from statsmodels.tsa.stattools import acf
 from sklearn.linear_model import LinearRegression
 import scienceplots
 import matplotlib.ticker as ticker
-plt.rcParams['font.family'] = ['Times New Roman', 'serif'] 
-plt.rcParams['font.size'] = 12
+
+plt.rcParams["font.family"] = ["Times New Roman", "serif"]
+plt.rcParams["font.size"] = 12
 
 DB_PATH = "../sensitive/modbus_data.db"
 
+
 def load_timeseries(device_name: str, column: str, db_path: str = DB_PATH):
     valid_columns = {
-        "id","timestamp","device_name","current_a","current_b","current_c",
-        "power_active","power_reactive","power_apparent","power_factor",
-        "voltage_an","voltage_bn","voltage_cn","voltage_ab","voltage_bc",
-        "voltage_ca","cumulative_active_energy"
+        "id",
+        "timestamp",
+        "device_name",
+        "current_a",
+        "current_b",
+        "current_c",
+        "power_active",
+        "power_reactive",
+        "power_apparent",
+        "power_factor",
+        "voltage_an",
+        "voltage_bn",
+        "voltage_cn",
+        "voltage_ab",
+        "voltage_bc",
+        "voltage_ca",
+        "cumulative_active_energy",
     }
     if column not in valid_columns:
         raise ValueError(f"Invalid column name: {column}")
@@ -46,44 +61,53 @@ def load_timeseries(device_name: str, column: str, db_path: str = DB_PATH):
 # spaghetti code abomination (As data science code often is)
 def analyze_weekly_load(data_tuples, substation):
 
-    df = pd.DataFrame(data_tuples, columns=['timestamp', 'load'])
-    df['timestamp'] = pd.to_datetime(df['timestamp'])
-    df = df.sort_values('timestamp').reset_index(drop=True)
+    df = pd.DataFrame(data_tuples, columns=["timestamp", "load"])
+    df["timestamp"] = pd.to_datetime(df["timestamp"])
+    df = df.sort_values("timestamp").reset_index(drop=True)
 
-    df['load'] = df['load'].interpolate(method='linear')
-    df = df.dropna(subset=['load'])
+    df["load"] = df["load"].interpolate(method="linear")
+    df = df.dropna(subset=["load"])
 
     intervals_per_hour = 4  # 15-minute intervals
     max_lag = 14 * 24 * intervals_per_hour
 
-    acf_vals = acf(df['load'], nlags=max_lag, fft=True)
+    acf_vals = acf(df["load"], nlags=max_lag, fft=True)
 
-    #plt.figure(figsize=(12,5))
+    # plt.figure(figsize=(12,5))
     fig, ax = plt.subplots(1, 1)
     fig.set_figwidth(12)
     fig.set_figheight(5)
-    ax.plot(np.arange(max_lag + 1) / intervals_per_hour, acf_vals, color='0.2', linewidth=0.8)
-    plt.axvline(24, color='red', linestyle='--', label='1 Day')
-    plt.axvline(7*24, color='green', linestyle='--', label='7 days')
-    plt.xlabel('Lag (hours)')
-    plt.ylabel('Autocorrelation')
-    plt.title('Autocorrelation of Load')
+    ax.plot(
+        np.arange(max_lag + 1) / intervals_per_hour,
+        acf_vals,
+        color="0.2",
+        linewidth=0.8,
+    )
+    plt.axvline(24, color="red", linestyle="--", label="1 Day")
+    plt.axvline(7 * 24, color="green", linestyle="--", label="7 days")
+    plt.xlabel("Lag (hours)")
+    plt.ylabel("Autocorrelation")
+    plt.title("Autocorrelation of Load")
     plt.grid(True, linestyle="--", alpha=0.6)
     plt.legend()
     loc = ticker.MultipleLocator(base=12)
     ax.xaxis.set_major_locator(loc)
     ax.set_xlim(0, 335)
-    plt.savefig(f'graphs/{substation}_acf.png', dpi=300)
-    #plt.show()
+    plt.savefig(f"graphs/{substation}_acf.png", dpi=300)
+    # plt.show()
 
-    df['day_of_week'] = df['timestamp'].dt.dayofweek  # 0=Monday
-    df['time_of_day'] = df['timestamp'].dt.hour + df['timestamp'].dt.minute / 60
+    df["day_of_week"] = df["timestamp"].dt.dayofweek  # 0=Monday
+    df["time_of_day"] = df["timestamp"].dt.hour + df["timestamp"].dt.minute / 60
 
-    weekly_stats = df.groupby(['day_of_week', 'time_of_day'])['load'].agg(
-        avg='mean',
-        p10=lambda x: np.percentile(x, 10),
-        p90=lambda x: np.percentile(x, 90)
-    ).unstack()
+    weekly_stats = (
+        df.groupby(["day_of_week", "time_of_day"])["load"]
+        .agg(
+            avg="mean",
+            p10=lambda x: np.percentile(x, 10),
+            p90=lambda x: np.percentile(x, 90),
+        )
+        .unstack()
+    )
 
     # # Plot average weekly profile
     # weekly_stats['avg'].plot(figsize=(12,6))
@@ -95,25 +119,26 @@ def analyze_weekly_load(data_tuples, substation):
     # Returning function duplicates might get a bit cooked
     # May need to rethink this approach
     def typical_load_for_timestamps(timestamps):
-        ts_df = pd.DataFrame({'timestamp': pd.to_datetime(timestamps)})
-        ts_df['day_of_week'] = ts_df['timestamp'].dt.dayofweek
-        ts_df['time_of_day'] = ts_df['timestamp'].dt.hour + ts_df['timestamp'].dt.minute / 60
-
-        merged = ts_df.merge(
-            weekly_stats.reset_index(),
-            how='left',
-            on=['day_of_week', 'time_of_day']
+        ts_df = pd.DataFrame({"timestamp": pd.to_datetime(timestamps)})
+        ts_df["day_of_week"] = ts_df["timestamp"].dt.dayofweek
+        ts_df["time_of_day"] = (
+            ts_df["timestamp"].dt.hour + ts_df["timestamp"].dt.minute / 60
         )
 
-        return merged[['timestamp', 'avg', 'p10', 'p90']]
+        merged = ts_df.merge(
+            weekly_stats.reset_index(), how="left", on=["day_of_week", "time_of_day"]
+        )
+
+        return merged[["timestamp", "avg", "p10", "p90"]]
 
     return {
-        'df': df,
-        'weekly_stats': weekly_stats,
-        'typical_load_fn': typical_load_for_timestamps,
-        '24h_autocorrelation': acf_vals[24*4],
-        '7d_autocorrelation': acf_vals[24*4*7],
+        "df": df,
+        "weekly_stats": weekly_stats,
+        "typical_load_fn": typical_load_for_timestamps,
+        "24h_autocorrelation": acf_vals[24 * 4],
+        "7d_autocorrelation": acf_vals[24 * 4 * 7],
     }
+
 
 # Transformer Rating Allocation
 # This is used for completely offline substations
@@ -125,7 +150,6 @@ def analyze_weekly_load(data_tuples, substation):
 # After 5 consecutive missing values, use this method
 # This will  just repeat a weekly, context invariant prediction
 # Use a cyclic mean baseline + time local adjustment
-
 
 
 # Direct linear extrapolation with retrospective corrective interpolation
@@ -142,14 +166,15 @@ def wmape(actual, predicted):
     total_actual = sum(abs(a) for a in actual)
 
     if total_actual == 0:
-        return float("nan") 
+        return float("nan")
 
     return (total_abs_error / total_actual) * 100
+
 
 def count_continuity_errors(data, expected_delta):
     continuity_errors = 0
     for i in range(1, len(data)):
-        prev_ts = data[i-1][0]
+        prev_ts = data[i - 1][0]
         curr_ts = data[i][0]
         if (curr_ts - prev_ts) != expected_delta or math.isnan(data[i][1]):
             continuity_errors += 1
@@ -173,7 +198,7 @@ def process_batch(data, n_values=(3, 5, 10), out_file="results_summary.csv"):
         actuals_quad = []
 
         for i in range(n, len(values) - 1):
-            window = values[i-n:i]
+            window = values[i - n : i]
             actual_next = values[i]
 
             # Moving average prediction
@@ -188,7 +213,7 @@ def process_batch(data, n_values=(3, 5, 10), out_file="results_summary.csv"):
             # Quadratic prediction
             if n >= 3:
                 coeffs = np.polyfit(x, y, 2)
-                quad_pred = coeffs[0]*n**2 + coeffs[1]*n + coeffs[2]
+                quad_pred = coeffs[0] * n**2 + coeffs[1] * n + coeffs[2]
                 abs_errors_quad.append(abs(actual_next - quad_pred))
                 actuals_quad.append(abs(actual_next))
 
@@ -208,24 +233,38 @@ def process_batch(data, n_values=(3, 5, 10), out_file="results_summary.csv"):
         avg_error_lin = np.mean(abs_errors_lin) if abs_errors_lin else np.nan
         avg_error_quad = np.mean(abs_errors_quad) if abs_errors_quad else np.nan
 
-        rows.append([
-            n,
-            wMAPE_ma, wMAPE_lin, wMAPE_quad,
-            avg_error_ma, avg_error_lin, avg_error_quad
-        ])
+        rows.append(
+            [
+                n,
+                wMAPE_ma,
+                wMAPE_lin,
+                wMAPE_quad,
+                avg_error_ma,
+                avg_error_lin,
+                avg_error_quad,
+            ]
+        )
 
     with open(out_file, "w", newline="") as f:
         writer = csv.writer(f)
-        writer.writerow([
-            "n", 
-            "wMAPE_MA", "wMAPE_Lin", "wMAPE_Quad",
-            "AvgError_MA", "AvgError_Lin", "AvgError_Quad"
-        ])
+        writer.writerow(
+            [
+                "n",
+                "wMAPE_MA",
+                "wMAPE_Lin",
+                "wMAPE_Quad",
+                "AvgError_MA",
+                "AvgError_Lin",
+                "AvgError_Quad",
+            ]
+        )
         writer.writerows(rows)
 
     return rows
 
+
 import concurrent.futures
+
 
 def process_substation(SUBSTATION, DB_PATH, EXPECTED_DELTA):
     data = load_timeseries(SUBSTATION, "power_active", DB_PATH)[0:4000]
@@ -233,17 +272,20 @@ def process_substation(SUBSTATION, DB_PATH, EXPECTED_DELTA):
     print(f"Loaded {data_points} data points for substation: {SUBSTATION}")
     continuity_errors = count_continuity_errors(data, EXPECTED_DELTA)
 
-    results = process_batch(
-        data,
-        n_values=range(2, 151),
-        out_file=f"{SUBSTATION}_results.csv"
+    # results = process_batch(
+    #     data,
+    #     n_values=range(2, 151),
+    #     out_file=f"{SUBSTATION}_results.csv"
+    # )
+
+    print(
+        f"Substation reliability is found to be "
+        f"{(1.0 - continuity_errors/data_points) * 100:.2f}% "
+        f"from {data_points} intervals"
     )
 
-    print(f"Substation reliability is found to be "
-          f"{(1.0 - continuity_errors/data_points) * 100:.2f}% "
-          f"from {data_points} intervals")
+    # return results
 
-    return results
 
 def run_all(subs_to_test, DB_PATH, EXPECTED_DELTA):
     global_results = []
@@ -269,12 +311,19 @@ def run_all(subs_to_test, DB_PATH, EXPECTED_DELTA):
 
     with open("global_results.csv", "w", newline="") as results_file:
         writer = csv.writer(results_file)
-        writer.writerow([
-            "n",
-            "wMAPE_MA", "wMAPE_Lin", "wMAPE_Quad",
-            "AvgError_MA", "AvgError_Lin", "AvgError_Quad"
-        ])
+        writer.writerow(
+            [
+                "n",
+                "wMAPE_MA",
+                "wMAPE_Lin",
+                "wMAPE_Quad",
+                "AvgError_MA",
+                "AvgError_Lin",
+                "AvgError_Quad",
+            ]
+        )
         writer.writerows(global_results)
+
 
 def plot_wmape_from_csv(substation):
     df = pd.read_csv(f"{substation}_results.csv")
@@ -295,7 +344,7 @@ def plot_wmape_from_csv(substation):
     # Detect intersections
     methods = list(series.keys())
     for i in range(len(methods)):
-        for j in range(i+1, len(methods)):
+        for j in range(i + 1, len(methods)):
             m1, m2 = methods[i], methods[j]
             y1, y2 = series[m1], series[m2]
 
@@ -303,8 +352,8 @@ def plot_wmape_from_csv(substation):
             sign_change = np.where(np.sign(diff[:-1]) != np.sign(diff[1:]))[0]
 
             for idx in sign_change:
-                x0, x1 = n_vals[idx], n_vals[idx+1]
-                y0, y1_diff = diff[idx], diff[idx+1]
+                x0, x1 = n_vals[idx], n_vals[idx + 1]
+                y0, y1_diff = diff[idx], diff[idx + 1]
                 if y1_diff - y0 != 0:
                     x_cross = x0 - y0 * (x1 - x0) / (y1_diff - y0)
                 else:
@@ -312,9 +361,14 @@ def plot_wmape_from_csv(substation):
 
                 plt.axvline(x_cross, color="gray", linestyle="--", alpha=0.5)
                 plt.text(
-                    x_cross - 0.5, plt.ylim()[1]*0.95,
-                    f"{x_cross:.1f}", rotation=90,
-                    va="top", ha="center", fontsize=9, color="black"
+                    x_cross - 0.5,
+                    plt.ylim()[1] * 0.95,
+                    f"{x_cross:.1f}",
+                    rotation=90,
+                    va="top",
+                    ha="center",
+                    fontsize=9,
+                    color="black",
                 )
 
     plt.xlabel("Window size (n)")
@@ -326,11 +380,12 @@ def plot_wmape_from_csv(substation):
     plt.savefig(f"graphs/{substation}_extrapolation.png", dpi=300)
     plt.close()
 
+
 def plot_typical_profile(data, subname, mode="daily"):
     df = pd.DataFrame(data, columns=["timestamp", "load"])
     df["timestamp"] = pd.to_datetime(df["timestamp"])
     df = df.set_index("timestamp")
-    
+
     # Remove NaN
     df = df.dropna(subset=["load"])
 
@@ -340,12 +395,14 @@ def plot_typical_profile(data, subname, mode="daily"):
         mean_profile = grouped.mean()
         std_profile = grouped.std()
 
-        x = mean_profile.index / 60.0 
+        x = mean_profile.index / 60.0
         xlabel = "Hour of day"
         title = f"Typical Quotidian Load Profile ({subname})"
 
     elif mode == "weekly":
-        df["week_minute"] = df.index.dayofweek * 1440 + df.index.hour * 60 + df.index.minute
+        df["week_minute"] = (
+            df.index.dayofweek * 1440 + df.index.hour * 60 + df.index.minute
+        )
         grouped = df.groupby("week_minute")["load"]
         mean_profile = grouped.mean()
         std_profile = grouped.std()
@@ -360,8 +417,14 @@ def plot_typical_profile(data, subname, mode="daily"):
     # Plot
     plt.figure(figsize=(12, 6))
     plt.plot(x, mean_profile, label="Mean load", color="blue")
-    plt.fill_between(x, mean_profile - std_profile, mean_profile + std_profile,
-                     color="blue", alpha=0.2, label="±1 Std Dev")
+    plt.fill_between(
+        x,
+        mean_profile - std_profile,
+        mean_profile + std_profile,
+        color="blue",
+        alpha=0.2,
+        label="±1 Std Dev",
+    )
 
     plt.xlabel(xlabel)
     plt.ylabel("Load")
@@ -371,7 +434,9 @@ def plot_typical_profile(data, subname, mode="daily"):
     plt.tight_layout()
     plt.savefig(f"graphs/{subname}_profile.png", dpi=300)
 
+
 import calendar
+
 
 def plot_daily_max_by_year(data, sub):
     df = pd.DataFrame(data, columns=["timestamp", "value"])
@@ -407,34 +472,38 @@ def plot_daily_max_by_year(data, sub):
 import numpy as np
 import matplotlib.pyplot as plt
 
-def simulate_gilbert_elliot(num_steps=7*96, p_good_to_bad=0.04, p_bad_to_good=0.3, loss_good=0.1, loss_bad=0.8):
-    rng = np.random.default_rng(42) # just wanna make the graph the same each run
+
+def simulate_gilbert_elliot(
+    num_steps=7 * 96, p_good_to_bad=0.04, p_bad_to_good=0.3, loss_good=0.1, loss_bad=0.8
+):
+    rng = np.random.default_rng(42)  # just wanna make the graph the same each run
     states = []
     losses = []
 
-    state = 'good'
+    state = "good"
     for _ in range(num_steps):
-        if state == 'good':
+        if state == "good":
             lost = rng.random() < loss_good
         else:
             lost = rng.random() < loss_bad
         losses.append(lost)
         states.append(state)
 
-        if state == 'good' and rng.random() < p_good_to_bad:
-            state = 'bad'
-        elif state == 'bad' and rng.random() < p_bad_to_good:
-            state = 'good'
+        if state == "good" and rng.random() < p_good_to_bad:
+            state = "bad"
+        elif state == "bad" and rng.random() < p_bad_to_good:
+            state = "good"
 
     return np.array(states), np.array(losses)
+
 
 def plot_with_bands(states, losses, readings_per_day=96):
     num_steps = len(states)
     t = np.arange(num_steps) / readings_per_day
-    
-    fig, ax = plt.subplots(figsize=(12,4))
 
-    in_bad = states == 'bad'
+    fig, ax = plt.subplots(figsize=(12, 4))
+
+    in_bad = states == "bad"
     start = None
     for i in range(num_steps):
         if in_bad[i] and start is None:
@@ -446,9 +515,9 @@ def plot_with_bands(states, losses, readings_per_day=96):
         ax.axvspan(start, t[-1], color="black", alpha=0.6)
 
     # # Plot received/lost readings
-    # ax.scatter(t[~losses], np.ones(np.sum(~losses)), 
+    # ax.scatter(t[~losses], np.ones(np.sum(~losses)),
     #            color="green", marker="o", label="Received", s=10)
-    # ax.scatter(t[losses], np.ones(np.sum(losses)), 
+    # ax.scatter(t[losses], np.ones(np.sum(losses)),
     #            color="red", marker="x", label="Lost", s=20)
 
     ax.set_ylim(0.5, 1.5)
@@ -470,24 +539,23 @@ if __name__ == "__main__":
     NETWORK_RELIABILITY_FACTOR = 0.80
     EXPECTED_DELTA = datetime.timedelta(minutes=15)
     subs_to_test = [
-        "100800", 
-        "100900", 
-        "101000", 
-        "101500", 
-        "101700", 
-        "101800", 
-        "101901", 
+        "100800",
+        "100900",
+        "101000",
+        "101500",
+        "101700",
+        "101800",
+        "101901",
         "101902",
-        "102000", 
-        "102101", 
-        "102102", 
-        "102300", 
-        "102701", 
-        "102702", 
-        "102901", 
-        "102902"
+        "102000",
+        "102101",
+        "102102",
+        "102300",
+        "102701",
+        "102702",
+        "102901",
+        "102902",
     ]
-
 
     for sub in subs_to_test:
         data = load_timeseries(sub, "power_apparent", DB_PATH)
@@ -505,6 +573,4 @@ if __name__ == "__main__":
 
         plot_daily_max_by_year(data, sub)
 
-        #plot_wmape_from_csv(sub)
-        
-
+        # plot_wmape_from_csv(sub)
