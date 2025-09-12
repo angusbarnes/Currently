@@ -176,7 +176,10 @@ def count_continuity_errors(data, expected_delta):
     for i in range(1, len(data)):
         prev_ts = data[i - 1][0]
         curr_ts = data[i][0]
-        if (curr_ts - prev_ts) != expected_delta or math.isnan(data[i][1]):
+        if (curr_ts - prev_ts) != expected_delta:
+            continuity_errors += 1
+            print("The forbidden case fired")
+        elif math.isnan(data[i][1]) or data[i][1] is None:
             continuity_errors += 1
 
     return continuity_errors
@@ -267,24 +270,24 @@ import concurrent.futures
 
 
 def process_substation(SUBSTATION, DB_PATH, EXPECTED_DELTA):
-    data = load_timeseries(SUBSTATION, "power_active", DB_PATH)[0:4000]
+    data = load_timeseries(SUBSTATION, "power_active", DB_PATH)
     data_points = len(data)
     print(f"Loaded {data_points} data points for substation: {SUBSTATION}")
     continuity_errors = count_continuity_errors(data, EXPECTED_DELTA)
 
-    # results = process_batch(
-    #     data,
-    #     n_values=range(2, 151),
-    #     out_file=f"{SUBSTATION}_results.csv"
-    # )
+    results = process_batch(
+        data,
+        n_values=range(2, 151),
+        out_file=f"{SUBSTATION}_results.csv"
+    )
 
     print(
-        f"Substation reliability is found to be "
+        f"Substation {SUBSTATION} reliability is found to be "
         f"{(1.0 - continuity_errors/data_points) * 100:.2f}% "
         f"from {data_points} intervals"
     )
 
-    # return results
+    return results
 
 
 def run_all(subs_to_test, DB_PATH, EXPECTED_DELTA):
@@ -557,9 +560,10 @@ if __name__ == "__main__":
         "102902",
     ]
 
+    run_all(subs_to_test, DB_PATH, EXPECTED_DELTA)
     for sub in subs_to_test:
         data = load_timeseries(sub, "power_apparent", DB_PATH)
-        run_all(subs_to_test, DB_PATH, EXPECTED_DELTA)
+        
         # result = analyze_weekly_load(data, sub)
         # if result['7d_autocorrelation'] < 0.6 and result['24h_autocorrelation'] < 0.6:
         #     print(f"Substation {sub} should be classified as having an ACYCLIC load profile = {result['7d_autocorrelation']}, {result['24h_autocorrelation']}")
