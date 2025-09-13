@@ -94,6 +94,7 @@ def analyze_weekly_load(data_tuples, substation):
     ax.xaxis.set_major_locator(loc)
     ax.set_xlim(0, 335)
     plt.savefig(f"graphs/{substation}_acf.png", dpi=300)
+    plt.close()
     # plt.show()
 
     df["day_of_week"] = df["timestamp"].dt.dayofweek  # 0=Monday
@@ -430,6 +431,7 @@ def plot_typical_profile(data, subname, mode="daily"):
     plt.legend()
     plt.tight_layout()
     plt.savefig(f"graphs/{subname}_profile.png", dpi=300)
+    plt.close()
 
 
 import calendar
@@ -464,6 +466,7 @@ def plot_daily_max_by_year(data, sub):
 
     plt.tight_layout()
     plt.savefig(f"graphs/{sub}_max_demands.png", dpi=300)
+    plt.close()
 
 
 import numpy as np
@@ -479,7 +482,7 @@ def assess_prediction_accuracy(time_series, typical_load_for_timestamps):
 
     pred_df = typical_load_for_timestamps(df_actual["timestamp"])
     merged = df_actual.merge(pred_df, on="timestamp", how="left")
-    error = wMAPE(merged["actual"], merged["avg"])
+    error = wMAPE(merged["actual"], merged["p10"])
 
     return error
 
@@ -537,6 +540,7 @@ def plot_with_bands(states, losses, readings_per_day=96):
     ax.legend([span], ["Loss"])
     plt.tight_layout()
     plt.savefig(f"graphs/GE_test.png", dpi=300)
+    plt.close()
 
 
 if __name__ == "__main__":
