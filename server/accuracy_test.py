@@ -22,7 +22,7 @@ plt.rcParams["font.size"] = 12
 DB_PATH = "../sensitive/modbus_data.db"
 
 
-def load_timeseries(device_name: str, column: str, db_path: str = DB_PATH):
+def load_timeseries(device_name: str, column: str, db_path: str = DB_PATH, start_date="2022-01-01 00:00:00", end_date="2025-02-25 10:30:00"):
     valid_columns = {
         "id",
         "timestamp",
@@ -50,9 +50,11 @@ def load_timeseries(device_name: str, column: str, db_path: str = DB_PATH):
         SELECT timestamp, {column}
         FROM modbus_logs
         WHERE device_name = ?
+        AND timestamp >= ?
+        AND timestamp <= ?
         ORDER BY timestamp ASC
     """
-    df = pd.read_sql_query(query, conn, params=(device_name,))
+    df = pd.read_sql_query(query, conn, params=(device_name,start_date,end_date))
     conn.close()
 
     df["timestamp"] = pd.to_datetime(df["timestamp"])
