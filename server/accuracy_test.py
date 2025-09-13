@@ -10,8 +10,11 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 from statsmodels.tsa.stattools import acf
 from sklearn.linear_model import LinearRegression
-import scienceplots
 import matplotlib.ticker as ticker
+import concurrent.futures
+import calendar
+import numpy as np
+import matplotlib.pyplot as plt
 
 plt.rcParams["font.family"] = ["Times New Roman", "serif"]
 plt.rcParams["font.size"] = 12
@@ -261,9 +264,6 @@ def process_batch(data, n_values=(3, 5, 10), out_file="results_summary.csv"):
     return rows
 
 
-import concurrent.futures
-
-
 def process_substation(SUBSTATION, DB_PATH, EXPECTED_DELTA):
     data = load_timeseries(SUBSTATION, "power_active", DB_PATH)
     data_points = len(data)
@@ -271,9 +271,7 @@ def process_substation(SUBSTATION, DB_PATH, EXPECTED_DELTA):
     continuity_errors = count_continuity_errors(data, EXPECTED_DELTA)
 
     results = process_batch(
-        data,
-        n_values=range(2, 151),
-        out_file=f"{SUBSTATION}_results.csv"
+        data, n_values=range(2, 151), out_file=f"{SUBSTATION}_results.csv"
     )
 
     print(
@@ -434,9 +432,6 @@ def plot_typical_profile(data, subname, mode="daily"):
     plt.close()
 
 
-import calendar
-
-
 def plot_daily_max_by_year(data, sub):
     df = pd.DataFrame(data, columns=["timestamp", "value"])
     df["timestamp"] = pd.to_datetime(df["timestamp"])
@@ -469,10 +464,6 @@ def plot_daily_max_by_year(data, sub):
     plt.close()
 
 
-import numpy as np
-import matplotlib.pyplot as plt
-
-
 def assess_prediction_accuracy(time_series, typical_load_for_timestamps):
     if not time_series:
         return None
@@ -482,9 +473,10 @@ def assess_prediction_accuracy(time_series, typical_load_for_timestamps):
 
     pred_df = typical_load_for_timestamps(df_actual["timestamp"])
     merged = df_actual.merge(pred_df, on="timestamp", how="left")
-    error = wMAPE(merged["actual"], merged["p10"])
+    error = wMAPE(merged["actual"], merged["avg"])
 
     return error
+
 
 def simulate_gilbert_elliot(
     num_steps=7 * 96, p_good_to_bad=0.04, p_bad_to_good=0.3, loss_good=0.1, loss_bad=0.8
@@ -571,22 +563,30 @@ if __name__ == "__main__":
         # "102902",
     ]
 
-    #run_all(subs_to_test, DB_PATH, EXPECTED_DELTA)
+    # run_all(subs_to_test, DB_PATH, EXPECTED_DELTA)
     for sub in subs_to_test:
         data = load_timeseries(sub, "power_apparent", DB_PATH)
-        
+
         result = analyze_weekly_load(data, sub)
-        if result['7d_autocorrelation'] < 0.6 and result['24h_autocorrelation'] < 0.6:
-            print(f"Substation {sub} should be classified as having an ACYCLIC load profile = {result['7d_autocorrelation']}, {result['24h_autocorrelation']}")
+        if result["7d_autocorrelation"] < 0.6 and result["24h_autocorrelation"] < 0.6:
+            print(
+                f"Substation {sub} should be classified as having an ACYCLIC load profile = {result['7d_autocorrelation']}, {result['24h_autocorrelation']}"
+            )
             plot_typical_profile(data, sub, mode="weekly")
-        elif result['7d_autocorrelation'] > result['24h_autocorrelation']:
-            print(f"Substation {sub} should be classified as having a HEBDOMADAL load profile = {result['7d_autocorrelation']}")
+        elif result["7d_autocorrelation"] > result["24h_autocorrelation"]:
+            print(
+                f"Substation {sub} should be classified as having a HEBDOMADAL load profile = {result['7d_autocorrelation']}"
+            )
             plot_typical_profile(data, sub, mode="daily")
         else:
-            print(f"Substation {sub} should be classified as having a QUOTIDIAN load profile = {result['24h_autocorrelation']}")
+            print(
+                f"Substation {sub} should be classified as having a QUOTIDIAN load profile = {result['24h_autocorrelation']}"
+            )
             plot_typical_profile(data, sub, mode="daily")
 
-        print(f"Substation {sub} typical function error: {assess_prediction_accuracy(data, result['typical_load_fn'])}")
+        print(
+            f"Substation {sub} typical function error: {assess_prediction_accuracy(data, result['typical_load_fn'])}"
+        )
         plot_daily_max_by_year(data, sub)
 
         plot_wmape_from_csv(sub)
