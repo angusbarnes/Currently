@@ -106,7 +106,7 @@ def analyze_weekly_load(data_tuples, substation):
             p10=lambda x: np.percentile(x, 10),
             p90=lambda x: np.percentile(x, 90),
         )
-        .unstack()
+        .reset_index()
     )
 
     # # Plot average weekly profile
@@ -161,7 +161,7 @@ def analyze_weekly_load(data_tuples, substation):
 def wMAPE(actual, predicted):
     actual = np.array(actual)
     predicted = np.array(predicted)
-    mask = actual != 0
+    mask = (actual != 0) & (~np.isnan(actual))
     return np.sum(np.abs(actual[mask] - predicted[mask])) / np.sum(np.abs(actual[mask]))
 
 
@@ -470,6 +470,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+def assess_prediction_accuracy(time_series, typical_load_for_timestamps):
+    if not time_series:
+        return None
+
+    df_actual = pd.DataFrame(time_series, columns=["timestamp", "actual"])
+    df_actual["timestamp"] = pd.to_datetime(df_actual["timestamp"])
+
+    pred_df = typical_load_for_timestamps(df_actual["timestamp"])
+    merged = df_actual.merge(pred_df, on="timestamp", how="left")
+    error = wMAPE(merged["actual"], merged["avg"])
+
+    return error
+
 def simulate_gilbert_elliot(
     num_steps=7 * 96, p_good_to_bad=0.04, p_bad_to_good=0.3, loss_good=0.1, loss_bad=0.8
 ):
@@ -550,11 +563,11 @@ if __name__ == "__main__":
         "102300",
         "102701",
         "102702",
-        "102901",
-        "102902",
+        # "102901",
+        # "102902",
     ]
 
-    run_all(subs_to_test, DB_PATH, EXPECTED_DELTA)
+    #run_all(subs_to_test, DB_PATH, EXPECTED_DELTA)
     for sub in subs_to_test:
         data = load_timeseries(sub, "power_apparent", DB_PATH)
         
@@ -569,6 +582,7 @@ if __name__ == "__main__":
             print(f"Substation {sub} should be classified as having a QUOTIDIAN load profile = {result['24h_autocorrelation']}")
             plot_typical_profile(data, sub, mode="daily")
 
+        print(f"Substation {sub} typical function error: {assess_prediction_accuracy(data, result['typical_load_fn'])}")
         plot_daily_max_by_year(data, sub)
 
         plot_wmape_from_csv(sub)
