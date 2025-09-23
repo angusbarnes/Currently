@@ -58,6 +58,7 @@ import time
 from scipy.io import savemat
 import asyncio
 import websockets
+import tracemalloc
 
 GLOBAL_SCALING_FACTOR = 5
 NETWORK_CONFIGURATION_DIRTY = False
@@ -67,9 +68,13 @@ async def stream_modbus_logs(websocket):
     cable_types = load_cable_types("cables.csv")
     nodes = load_nodes_from_disk("nodes.csv")
     lines = load_lines_from_disk("links.csv")
-    pprint(lines)
+    #pprint(lines)
     net, total_rating = build_network(nodes, lines, cable_types)
-    logger.notice(net)
+    #logger.notice(net)
+
+    
+    tracemalloc.start()
+    snapshot1 = tracemalloc.take_snapshot()
 
     try:
         for reading_set in database.fetch_batches("../sensitive/modbus_data.db", "2023-12-29 04:45:00"):
@@ -90,6 +95,10 @@ async def stream_modbus_logs(websocket):
             else:
                 logger.notice(f"Main load flow evaluation time = {exec_time:.3f} seconds.")
 
+
+            current, peak = tracemalloc.get_traced_memory()
+            print(f"Memory usage: {current/1024/1024:.1f} MB; Peak: {peak/1024/1024:.1f} MB")
+        
             data = {}
 
             data["line_data"] = serialise_list(list(lines.values()))
@@ -98,12 +107,13 @@ async def stream_modbus_logs(websocket):
             # print(site_totals)
             # report_line_loadings(net, 3)
             packet = json.dumps(data, default=str)
-            logger.info(f"Preparing to send a packet with size: {len(packet)/1024:.1f} kB")
+            print(f"Preparing to send a packet with size: {len(packet)/1024:.1f} kB")
             await websocket.send(packet)
-            await asyncio.sleep(2-exec_time)
+            await asyncio.sleep(max(0, 2-exec_time))
 
     except websockets.exceptions.ConnectionClosed:
         print("Client disconnected")
+    tracemalloc.stop()
 
 def evaluate_load_flow_with_known_loads(nodes, lines, net, reading_set, site_totals, total_rating):
     remaining_rating = total_rating
