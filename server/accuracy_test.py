@@ -537,29 +537,29 @@ def plot_with_bands(states, losses, readings_per_day=96):
     plt.close()
 
 
-def specialised_accuracy_testing(subs_to_test, db_path, models, periods_to_test=["day","week","month","year"]):
-    # We want to test the performance of our specialised medium term predictive models
-    results = []
-    for sub in subs_to_test:
-        for model in models:
-            for period in periods_to_test:
-                # Start date and end date should be between 2023-10-01 00:00:00 and 2024-10-01 00:00:00
-                training_data = load_timeseries(sub, "apparent_power", db_path, START_DATE, END_DATE)
-                verification_data = load_timeseries(sub, "apparent_power", db_path, END_DATE, END_DATE + 1 MONTH)
+# def specialised_accuracy_testing(subs_to_test, db_path, models, periods_to_test=["day","week","month","year"]):
+#     # We want to test the performance of our specialised medium term predictive models
+#     results = []
+#     for sub in subs_to_test:
+#         for model in models:
+#             for period in periods_to_test:
+#                 # Start date and end date should be between 2023-10-01 00:00:00 and 2024-10-01 00:00:00
+#                 training_data = load_timeseries(sub, "apparent_power", db_path, START_DATE, END_DATE)
+#                 verification_data = load_timeseries(sub, "apparent_power", db_path, END_DATE, END_DATE + 1 MONTH)
 
-                model.train(training_data)
-                wmape, average_absolute_error = model.test(verification_data)
-                results.append({
-                    "model": model.name,
-                    "period": period,
-                    "substation": sub
-                    "accuracy": wmape,
-                    "mean_error": average_absolute_error
-                })
+#                 model.train(training_data)
+#                 wmape, average_absolute_error = model.test(verification_data)
+#                 results.append({
+#                     "model": model.name,
+#                     "period": period,
+#                     "substation": sub
+#                     "accuracy": wmape,
+#                     "mean_error": average_absolute_error
+#                 })
 
 if __name__ == "__main__":
 
-    states, losses = simulate_gilbert_elliot(p_good_to_bad=0.02, p_bad_to_good=0.3)
+    states, losses = simulate_gilbert_elliot(p_good_to_bad=0.05, p_bad_to_good=0.2, loss_bad=0.9, loss_good=0.01)
     plot_with_bands(states, losses)
 
     # Every sample has a chance of being dropped or lost in the network

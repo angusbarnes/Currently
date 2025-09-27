@@ -44,8 +44,6 @@ setup_colored_logging()
 
 logging.basicConfig(level=logging.DEBUG, format='[%(levelname)s]: %(message)s')
 logger = logging.getLogger(__name__)
-logging.disable(logging.CRITICAL)
-
 # The entry point for the Currently Data Server
 # We load these dependencies after logging config to ensure uniform log format
 from lib.reporting import report_bus_voltages, report_line_loadings
@@ -75,7 +73,7 @@ async def stream_modbus_logs(websocket):
     
     tracemalloc.start()
     snapshot1 = tracemalloc.take_snapshot()
-
+    peaks = []
     try:
         for reading_set in database.fetch_batches("../sensitive/modbus_data.db", "2023-12-29 04:45:00"):
 
@@ -97,6 +95,10 @@ async def stream_modbus_logs(websocket):
 
 
             current, peak = tracemalloc.get_traced_memory()
+            peaks.append(current)
+            if len(peaks) == 100:
+                print(f"Average: {sum(peaks)/100} MB")
+                exit()
             print(f"Memory usage: {current/1024/1024:.1f} MB; Peak: {peak/1024/1024:.1f} MB")
         
             data = {}

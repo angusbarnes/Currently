@@ -8,6 +8,8 @@ from dataclasses import dataclass, field
 from typing import Optional
 import pandapower as pp
 import pandapower.networks as pn
+import numpy as np
+import random
 
 from typing import List, Dict
 
@@ -106,6 +108,29 @@ class Line:
         return _json
 
 
+# TODO: This is a somewhat lazy approach. Maybe re-write later if have time??
+class GilbertElliottSimulator:
+    def __init__(self, p_good_to_bad=0.85, p_bad_to_good=0.2,
+                 p_loss_good=0.01, p_loss_bad=0.9, seed=None):
+        self.p_good_to_bad = p_good_to_bad
+        self.p_bad_to_good = p_bad_to_good
+        self.p_loss_good = p_loss_good
+        self.p_loss_bad = p_loss_bad
+        self.state = "G" # Prolly better if I made this an enum but yolo
+        self.rng = np.random.default_rng(seed)
+
+    def should_drop(self):
+        if self.state == "G":
+            lost = random.random() < self.p_loss_good
+
+            if random.random() < self.p_good_to_bad:
+                self.state = "B"
+        else:
+            lost = random.random() < self.p_loss_bad
+            if random.random() < self.p_bad_to_good:
+                self.state = "G"
+        return lost
+
 @dataclass
 class ActiveNode:
     id: int
@@ -124,6 +149,9 @@ class ActiveNode:
     va_degree: Optional[float] = None
     p_mw: Optional[float] = None
     q_mvar: Optional[float] = None
+    
+    gilbert_elliott_simulator: GilbertElliottSimulator = None
+    valid_readings = []
 
     def serialise(self):
         _json = {}
@@ -138,6 +166,22 @@ class ActiveNode:
         _json["online"] = self.is_online
 
         return _json
+    
+    def predict_next(self):
+        return self.valid_readings[-1]
+
+    def set_ge_model(self, model):
+        self.gilbert_elliott_simulator = model
+
+    def should_drop_current_reading(self) -> bool:
+        if not self.gilbert_elliott_simulator:
+            raise RuntimeError(f"Attempted to simulate network conditions, but no simulation model was specified. Node={self.id}")
+        
+        return self.gilbert_elliott_simulator.should_drop()
+    
+    def add_valid_reading(self, p, q):
+        self.valid_readings.append((p, q))
+
 
 
 def update_nodes_from_results(nodes: Dict[int, ActiveNode], res_bus) -> None:
@@ -177,6 +221,7 @@ def load_nodes_from_disk(node_file: Path) -> Dict[int, ActiveNode]:
             # Janky ass error checking, make this cleaner if have time
             try:
                 node = ActiveNode(int(data_link_key), bus_name, float(transformer_rating), is_active=string_to_bool(is_active), comment=notes)
+                node.set_ge_model(GilbertElliottSimulator(seed=int(data_link_key)))
             except ValueError as err:
                 raise ValueError(f"The bus definition for {bus_name}:{data_link_key} is malformed. Check the values for all fields. TRACE: {err}")
 
