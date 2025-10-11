@@ -70,22 +70,27 @@ class BaseModel:
         y_true = verification_data.iloc[:, 0]
         y_pred = self.predict(verification_data.index)
 
+        abs_error = np.abs(y_true.values - y_pred.values)
+        abs_true = np.abs(y_true.values)
+
         step_errors = pd.DataFrame({
             "timestamp": verification_data.index,
             "y_true": y_true.values,
             "y_pred": y_pred.values,
-            "abs_error": np.abs(y_true.values - y_pred.values)
+            "abs_error": abs_error,
+            "ape": abs_error / np.where(abs_true == 0, np.nan, abs_true)
         })
-        step_errors["wmape_step"] = (
-            np.abs(y_true.values - y_pred.values) / np.where(y_true.values == 0, np.nan, np.abs(y_true.values))
-        )
+
+        # Progressive WMAPE
+        cumsum_abs_error = np.cumsum(abs_error)
+        cumsum_abs_true = np.cumsum(abs_true)
+        step_errors["wmape_progressive"] = cumsum_abs_error / np.where(cumsum_abs_true == 0, np.nan, cumsum_abs_true)
 
         return {
             "wmape_total": wmape(y_true.values, y_pred.values),
             "mae_total": mae(y_true.values, y_pred.values),
             "step_errors": step_errors
         }
-
 
 class LastValueModel(BaseModel):
     def __init__(self):
@@ -155,7 +160,7 @@ def specialised_accuracy_testing(subs_to_test, db_path, models,
                 else:
                     raise ValueError(f"Unsupported window: {window}")
 
-                train_end = base_end #.replace(hour=12, minute=0, second=0)
+                train_end = base_end.replace(hour=0, minute=0, second=0)
                 train_start = train_end - delta
 
                 training_data = load_timeseries(sub, "power_apparent", db_path, train_start, train_end)
@@ -267,46 +272,46 @@ if __name__ == "__main__":
 
     subs = [
         "100800",
-        "100900",
-        "101000",
-        "101500",
-        "101700",
-        "101800",
-        "102000",
-        "102101",
-        "102102",
-        "102300"
+        # "100900",
+        # "101000",
+        # "101500",
+        # "101700",
+        # "101800",
+        # "102000",
+        # "102101",
+        # "102102",
+        # "102300"
     ]
     db_path = "../sensitive/modbus_data.db"
 
-    # res = specialised_accuracy_testing(subs, db_path, models, training_windows=["month"], outage_days=1)
-
-    # for sub in subs:
-    #     plt.figure(figsize=(12, 6))
-
-    #     for r in res:
-    #         if r["substation"] != sub:
-    #             continue
-
-    #         step_errors = r["step_errors"]
-    #         wmape_step = step_errors["wmape_step"].values
-    #         timestamps = step_errors["timestamp"].values
-
-    #         label = f"{r['model']} ({r['training_window']})"
-    #         plt.plot(wmape_step, label=label, alpha=0.8)
-
-    #     plt.title(f"Inaccuracy Creep over Verification Period — {sub}")
-    #     plt.xlabel("Verification timestamp")
-    #     plt.ylabel("WMAPE (per step)")
-        
-    #     plt.axhline(0.10, color='red', label="10% Error Cutoff")
-    #     plt.legend()
-    #     plt.grid(True, alpha=0.3)
-    #     plt.tight_layout()
-    #     plt.show()
+    res = specialised_accuracy_testing(subs, db_path, models, training_windows=["month"], outage_days=1)
 
     for sub in subs:
-        df = load_timeseries(sub, "power_apparent", db_path, "2024-01-01", "2024-06-30")
-        results = evaluate_baselines(df)
-        print(results)
+        plt.figure(figsize=(12, 6))
+
+        for r in res:
+            if r["substation"] != sub:
+                continue
+
+            step_errors = r["step_errors"]
+            wmape_step = step_errors["wmape_progressive"].values
+            timestamps = np.linspace(0, 24, num=len(wmape_step))
+
+            label = f"{r['model']} ({r['training_window']})"
+            plt.plot(timestamps, wmape_step * 100, label=label, alpha=0.8)
+
+        plt.title(f"Error Creep over Verification Period")
+        plt.xlabel("Hour of Outage (h)")
+        plt.ylabel("Progressive wMAPE (%)")
+        
+        plt.axhline(10, color='red', label="10% Error Cutoff")
+        plt.legend()
+        plt.grid(True, alpha=0.3)
+        plt.tight_layout()
+        plt.show()
+
+    # for sub in subs:
+    #     df = load_timeseries(sub, "power_apparent", db_path, "2024-01-01", "2024-06-30")
+    #     results = evaluate_baselines(df)
+    #     print(results)
         
