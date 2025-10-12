@@ -369,9 +369,9 @@ def plot_wmape_from_csv(substation):
                     color="black",
                 )
 
-    plt.xlabel("Window size (n)")
-    plt.ylabel("wMAPE")
-    plt.title(f"wMAPE vs Window Size ({substation})")
+    plt.xlabel("Window Size (N)")
+    plt.ylabel("Error Percentage (wMAPE)")
+    plt.title(f"Effect of Window Size on Model Error")
     plt.legend()
     plt.grid(True, linestyle="--", alpha=0.6)
     plt.tight_layout()
@@ -394,8 +394,8 @@ def plot_typical_profile(data, subname, mode="daily"):
         std_profile = grouped.std()
 
         x = mean_profile.index / 60.0
-        xlabel = "Hour of day"
-        title = f"Typical Quotidian Load Profile ({subname})"
+        xlabel = "Hour of Day (h)"
+        title = f"Typical Quotidian Load Profile"
 
     elif mode == "weekly":
         df["week_minute"] = (
@@ -406,7 +406,7 @@ def plot_typical_profile(data, subname, mode="daily"):
         std_profile = grouped.std()
 
         x = mean_profile.index / 60.0
-        xlabel = "Hour of week"
+        xlabel = "Hour of Week (h)"
         title = "Typical Hebdomadal Load Profile"
 
     else:
@@ -425,7 +425,7 @@ def plot_typical_profile(data, subname, mode="daily"):
     )
 
     plt.xlabel(xlabel)
-    plt.ylabel("Load")
+    plt.ylabel("Load (kVA)")
     plt.title(title)
     plt.grid(True, linestyle="--", alpha=0.6)
     plt.legend()

@@ -300,7 +300,7 @@ if __name__ == "__main__":
             label = f"{r['model']} ({r['training_window']})"
             plt.plot(timestamps, wmape_step * 100, label=label, alpha=0.8)
 
-        plt.title(f"Error Creep over Verification Period")
+        plt.title(f"Model Performance vs Outage Duration")
         plt.xlabel("Hour of Outage (h)")
         plt.ylabel("Progressive wMAPE (%)")
         
