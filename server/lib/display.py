@@ -1,9 +1,11 @@
 import math
 import os
 import logging
-os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
+
+os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
 try:
     import pygame
+
     PYGAME_AVAILABLE = True
 except ImportError:
     logging.error("Pygame is not installed. Display features will be disabled.")

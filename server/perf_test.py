@@ -9,8 +9,9 @@ import random
 import csv
 import time
 import matplotlib.pyplot as plt
-plt.rcParams['font.family'] = ['Times New Roman', 'serif'] 
-plt.rcParams['font.size'] = 12
+
+plt.rcParams["font.family"] = ["Times New Roman", "serif"]
+plt.rcParams["font.size"] = 12
 
 SAMPLES = 100
 TOTAL_NODES = 37
@@ -23,15 +24,28 @@ if __name__ == "__main__":
     lines = load_lines_from_disk("links.csv")
     net, total_rating = build_network(nodes, lines, cable_types)
 
-    readings = list(itertools.islice(
-        database.fetch_batches("../sensitive/modbus_data.db", "2023-12-29 04:45:00"),
-        100
-    ))
+    readings = list(
+        itertools.islice(
+            database.fetch_batches(
+                "../sensitive/modbus_data.db", "2023-12-29 04:45:00"
+            ),
+            100,
+        )
+    )
 
-    results = []  
+    results = []
 
     with open(LOG_FILE, mode="w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=["sample", "reading_set", "simulated_nodes", "real_nodes", "exec_time"])
+        writer = csv.DictWriter(
+            f,
+            fieldnames=[
+                "sample",
+                "reading_set",
+                "simulated_nodes",
+                "real_nodes",
+                "exec_time",
+            ],
+        )
         writer.writeheader()
 
         # Repeat to reduce random variance
@@ -42,16 +56,17 @@ if __name__ == "__main__":
 
                 # Select our random readings
                 # This introduces some variance in data consistency which is a worst case scenario
-                # for the CPU. 
+                # for the CPU.
                 chosen_readings = random.sample(
-                    reading_set[:-1],
-                    k=random.randint(1, len(reading_set) - 1)
+                    reading_set[:-1], k=random.randint(1, len(reading_set) - 1)
                 )
 
                 real_nodes = len(chosen_readings)
                 simulated_nodes = TOTAL_NODES - real_nodes
 
-                start = time.perf_counter() # The perf counter provides better consistency for benchmarking
+                start = (
+                    time.perf_counter()
+                )  # The perf counter provides better consistency for benchmarking
                 evaluate_load_flow_with_known_loads(
                     nodes, lines, net, chosen_readings, site_totals, total_rating
                 )
@@ -64,7 +79,7 @@ if __name__ == "__main__":
                     "reading_set": j,
                     "simulated_nodes": simulated_nodes,
                     "real_nodes": real_nodes,
-                    "exec_time": elapsed
+                    "exec_time": elapsed,
                 }
 
                 writer.writerow(row)
@@ -88,7 +103,9 @@ if __name__ == "__main__":
         coeffs = np.polyfit(simulated_nodes, exec_times, 1)
         poly = np.poly1d(coeffs)
         xs = np.linspace(min(simulated_nodes), max(simulated_nodes), 100)
-        plt.plot(xs, poly(xs), "r--", label=f"Trend: y={coeffs[0]:.4f}x+{coeffs[1]:.4f}")
+        plt.plot(
+            xs, poly(xs), "r--", label=f"Trend: y={coeffs[0]:.4f}x+{coeffs[1]:.4f}"
+        )
         plt.legend()
         plt.grid(True, linestyle="--", alpha=0.6)
 

@@ -19,7 +19,7 @@ class CharacterisedLoad:
 
     def get_number_of_data_points(self):
         return len(self.frame)
-    
+
     # Get the max demands without including the 99th percentile results
     # this removed the chance for outliers from creating inaccurate forecasts.
     # We also return the timestamps for use with the load characteriser
@@ -29,9 +29,7 @@ class CharacterisedLoad:
 
         apparent_thresh = np.percentile(apparent, 99)
 
-        filtered = df[
-            (df["power_apparent"] <= apparent_thresh)
-        ]
+        filtered = df[(df["power_apparent"] <= apparent_thresh)]
 
         active_row = filtered.loc[filtered["power_active"].abs().idxmax()]
         reactive_row = filtered.loc[filtered["power_reactive"].abs().idxmax()]
@@ -40,14 +38,20 @@ class CharacterisedLoad:
         return {
             "max_active": active_row["power_active"],
             "active_timestamp": active_row["timestamp"],
-            "max_apparent" : (apparent_row["power_active"], apparent_row["power_reactive"]),
+            "max_apparent": (
+                apparent_row["power_active"],
+                apparent_row["power_reactive"],
+            ),
             "apparent_timestamp": apparent_row["timestamp"],
             "max_reactive": reactive_row["power_reactive"],
-            "reactive_timestamp": reactive_row["timestamp"]
+            "reactive_timestamp": reactive_row["timestamp"],
         }
-    
+
     def get_absolute_maximums(self):
-        return (np.max(self.frame["power_active"]), np.max(self.frame["power_reactive"]))
+        return (
+            np.max(self.frame["power_active"]),
+            np.max(self.frame["power_reactive"]),
+        )
 
     def get_seasonal_stats(self):
         spring_filtered = self.frame[self.frame["timestamp"].dt.month.isin([9, 10, 11])]
@@ -100,7 +104,7 @@ class CharacterisedLoad:
 
     def get_date_range(self) -> tuple[str, str]:
         return (np.min(self.frame["timestamp"]), np.max(self.frame["timestamp"]))
-    
+
     def get_average_loads(self):
         pload = np.nanmean(self.frame["power_active"])
         qload = np.nanmean(self.frame["power_reactive"])
@@ -114,7 +118,7 @@ def characterise_load(database_path: str, substation_id: str):
 
     database_connection = sqlite3.connect(database_path)
     df = pd.read_sql_query(
-        f"SELECT * FROM modbus_logs WHERE device_name = {substation_id} AND timestamp < \"2024-12-01 00:00:00\"",
+        f'SELECT * FROM modbus_logs WHERE device_name = {substation_id} AND timestamp < "2024-12-01 00:00:00"',
         database_connection,
     )
 

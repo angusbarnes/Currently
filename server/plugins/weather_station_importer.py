@@ -7,6 +7,7 @@ class ExamplePlugin(CurrentlyPlugin):
     """
     Example plugin class structure
     """
+
     plugin_name = "My Example Plugin"
     plugin_version = "1.0.0"
     plugin_author = "Example Author"

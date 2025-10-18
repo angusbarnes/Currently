@@ -15,10 +15,12 @@ _default_config = {
     "target-voltage": 11000,
 }
 
+
 def SetPathParamResolves(resolver_map: dict):
     pass
 
-def _parse_scenario_file(scenario_path, resolvers = None):
+
+def _parse_scenario_file(scenario_path, resolvers=None):
     if not os.path.isfile(scenario_path):
         raise FileNotFoundError(f"Scenario file not found: {scenario_path}")
     with open(scenario_path, "rb") as f:
@@ -45,7 +47,7 @@ def _parse_params(args, base_config):
     return config
 
 
-def load_config(args, resolvers = None):
+def load_config(args, resolvers=None):
     config = _default_config.copy()
 
     if "--scenario" in args:

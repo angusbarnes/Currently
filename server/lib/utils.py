@@ -8,11 +8,13 @@ def resolve_relative_path_from_config(relative_path, config_path):
     base_dir = toml_path.parent
 
     if not isinstance(relative_path, str):
-        raise Exception(f"Expected relative path passed as string, got: {type(relative_path)}")
+        raise Exception(
+            f"Expected relative path passed as string, got: {type(relative_path)}"
+        )
     path = Path(relative_path)
     if path.is_absolute():
-            return relative_path
-    
+        return relative_path
+
     return (base_dir / path).resolve()
 
 

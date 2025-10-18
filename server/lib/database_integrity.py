@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 
 DB_PATH = "../sensitive/modbus_data.db"
 
+
 def ensure_integrity(db_path=DB_PATH):
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
@@ -11,35 +12,42 @@ def ensure_integrity(db_path=DB_PATH):
     devices = [row[0] for row in cur.fetchall()]
 
     for device in devices:
-        cur.execute("""
+        cur.execute(
+            """
             SELECT MIN(timestamp), MAX(timestamp) 
             FROM modbus_logs 
             WHERE device_name = ?;
-        """, (device,))
+        """,
+            (device,),
+        )
         min_ts, max_ts = cur.fetchone()
 
         if not min_ts or not max_ts:
             continue
 
         start = datetime.strptime(min_ts, "%Y-%m-%d %H:%M:%S")
-        end   = datetime.strptime(max_ts, "%Y-%m-%d %H:%M:%S")
+        end = datetime.strptime(max_ts, "%Y-%m-%d %H:%M:%S")
 
         current = start
         missing = []
 
         while current <= end:
             ts_str = current.strftime("%Y-%m-%d %H:%M:%S")
-            cur.execute("""
+            cur.execute(
+                """
                 SELECT 1 FROM modbus_logs 
                 WHERE device_name = ? AND timestamp = ?;
-            """, (device, ts_str))
+            """,
+                (device, ts_str),
+            )
             if not cur.fetchone():
                 missing.append((ts_str, device))
             current += timedelta(minutes=15)
 
         if missing:
             print(f"{device}: inserting {len(missing)} missing rows")
-            cur.executemany("""
+            cur.executemany(
+                """
                 INSERT OR IGNORE INTO modbus_logs (
                     timestamp, device_name,
                     current_a, current_b, current_c,
@@ -50,10 +58,13 @@ def ensure_integrity(db_path=DB_PATH):
                 )
                 VALUES (?, ?, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
                         NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-            """, missing)
+            """,
+                missing,
+            )
 
     conn.commit()
     conn.close()
+
 
 if __name__ == "__main__":
     ensure_integrity()

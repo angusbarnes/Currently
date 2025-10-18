@@ -2,17 +2,20 @@ import logging
 from colorama import Fore, Style, init as colorama_init
 
 from network_utils import serialise_list
+
 colorama_init(autoreset=True)
 
-
-NOTICE_LEVEL_NUM = 25 # Between INFO (20) and WARNING (30)
+NOTICE_LEVEL_NUM = 25  # Between INFO (20) and WARNING (30)
 logging.addLevelName(NOTICE_LEVEL_NUM, "NOTICE")
+
 
 def notice(self, message, *args, **kwargs):
     if self.isEnabledFor(NOTICE_LEVEL_NUM):
         self._log(NOTICE_LEVEL_NUM, message, args, **kwargs)
 
-logging.Logger.notice = notice 
+
+logging.Logger.notice = notice
+
 
 class ColorFormatter(logging.Formatter):
     COLORS = {
@@ -21,7 +24,7 @@ class ColorFormatter(logging.Formatter):
         logging.ERROR: Fore.RED,
         logging.CRITICAL: Fore.RED + Style.BRIGHT,
         logging.DEBUG: Fore.GREEN,
-        NOTICE_LEVEL_NUM: Fore.GREEN
+        NOTICE_LEVEL_NUM: Fore.GREEN,
     }
 
     def format(self, record):
@@ -29,6 +32,7 @@ class ColorFormatter(logging.Formatter):
         levelname = f"{color}{record.levelname}{Style.RESET_ALL}"
         record.levelname = levelname
         return super().format(record)
+
 
 def setup_colored_logging(level=logging.INFO):
     handler = logging.StreamHandler()
@@ -40,9 +44,10 @@ def setup_colored_logging(level=logging.INFO):
     logger.handlers.clear()
     logger.addHandler(handler)
 
+
 setup_colored_logging()
 
-logging.basicConfig(level=logging.DEBUG, format='[%(levelname)s]: %(message)s')
+logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s]: %(message)s")
 logger = logging.getLogger(__name__)
 # The entry point for the Currently Data Server
 # We load these dependencies after logging config to ensure uniform log format
@@ -66,16 +71,16 @@ async def stream_modbus_logs(websocket):
     cable_types = load_cable_types("cables.csv")
     nodes = load_nodes_from_disk("nodes.csv")
     lines = load_lines_from_disk("links.csv")
-    #pprint(lines)
-    net, total_rating = build_network(nodes, lines, cable_types)
-    #logger.notice(net)
 
-    
+    net, total_rating = build_network(nodes, lines, cable_types)
+
     tracemalloc.start()
     snapshot1 = tracemalloc.take_snapshot()
     peaks = []
     try:
-        for reading_set in database.fetch_batches("../sensitive/modbus_data.db", "2023-12-29 04:45:00"):
+        for reading_set in database.fetch_batches(
+            "../sensitive/modbus_data.db", "2023-12-29 04:45:00"
+        ):
 
             # If the underlying configuration has changed, rebuild the whole network
             # otherwise used the cached networks structure and simply drop the loads
@@ -84,49 +89,58 @@ async def stream_modbus_logs(websocket):
             else:
                 clear_network_loads(net)
 
-            site_totals = reading_set.pop() #TODO: Make this more resilient
+            site_totals = reading_set.pop()  # TODO: Make this more resilient
 
-            exec_time = evaluate_load_flow_with_known_loads(nodes, lines, net, reading_set, site_totals, total_rating)
+            exec_time = evaluate_load_flow_with_known_loads(
+                nodes, lines, net, reading_set, site_totals, total_rating
+            )
 
             if exec_time > 0.7:
-                logger.warning(f"Main load flow evaluation time = {Fore.LIGHTRED_EX}{exec_time:.3f}{Fore.RESET} seconds.")
+                logger.warning(
+                    f"Main load flow evaluation time = {Fore.LIGHTRED_EX}{exec_time:.3f}{Fore.RESET} seconds."
+                )
             else:
-                logger.notice(f"Main load flow evaluation time = {exec_time:.3f} seconds.")
-
+                logger.notice(
+                    f"Main load flow evaluation time = {exec_time:.3f} seconds."
+                )
 
             current, peak = tracemalloc.get_traced_memory()
             peaks.append(current)
             if len(peaks) == 100:
                 print(f"Average: {sum(peaks)/100} MB")
                 exit()
-            print(f"Memory usage: {current/1024/1024:.1f} MB; Peak: {peak/1024/1024:.1f} MB")
-        
+            print(
+                f"Memory usage: {current/1024/1024:.1f} MB; Peak: {peak/1024/1024:.1f} MB"
+            )
+
             data = {}
 
             data["line_data"] = serialise_list(list(lines.values()))
             data["node_data"] = serialise_list(list(nodes.values()))
             data["site_totals"] = site_totals
-            # print(site_totals)
-            # report_line_loadings(net, 3)
+
             packet = json.dumps(data, default=str)
             print(f"Preparing to send a packet with size: {len(packet)/1024:.1f} kB")
             await websocket.send(packet)
-            await asyncio.sleep(max(0, 2-exec_time))
+            await asyncio.sleep(max(0, 2 - exec_time))
 
     except websockets.exceptions.ConnectionClosed:
         print("Client disconnected")
     tracemalloc.stop()
 
-def evaluate_load_flow_with_known_loads(nodes, lines, net, reading_set, site_totals, total_rating):
+
+def evaluate_load_flow_with_known_loads(
+    nodes, lines, net, reading_set, site_totals, total_rating
+):
     remaining_rating = total_rating
     loaded_subs = []
     allocated_q = 0
     allocated_p = 0
     for i, reading in enumerate(reading_set):
-                # If we have unreliable data we should skip this sub and simulate it instead
+        # If we have unreliable data we should skip this sub and simulate it instead
         try:
-            p = reading["power_active"]/1000
-            q = reading["power_reactive"]/1000
+            p = reading["power_active"] / 1000
+            q = reading["power_reactive"] / 1000
         except TypeError:
             continue
 
@@ -136,25 +150,28 @@ def evaluate_load_flow_with_known_loads(nodes, lines, net, reading_set, site_tot
         allocated_q += q
         remaining_rating -= nodes[int(reading["device_name"])].rating
         pp.create_load(
-            net, 
-            nodes[int(reading["device_name"])].node_object, 
-            p_mw=p, 
-            q_mvar=q, 
+            net,
+            nodes[int(reading["device_name"])].node_object,
+            p_mw=p,
+            q_mvar=q,
             scaling=GLOBAL_SCALING_FACTOR,
-            name=nodes[int(reading["device_name"])].name
+            name=nodes[int(reading["device_name"])].name,
         )
 
         nodes[int(reading["device_name"])].is_online = True
 
-        logger.debug(f"Loaded {int(reading['device_name'])} with P={reading['power_active']/1000}, Q={reading['power_reactive']/1000}")
+        logger.debug(
+            f"Loaded {int(reading['device_name'])} with P={reading['power_active']/1000}, Q={reading['power_reactive']/1000}"
+        )
 
     logger.info(f"Added {i+1} loads from timestamp: {site_totals['timestamp']}")
     logger.debug(f"Loaded: {loaded_subs}")
 
-    remaining_p = (site_totals['ansto_total_kw']/1000) - allocated_p
-    remaining_q = (site_totals['ansto_total_kvar']/1000) - allocated_q
-    logger.debug(f"Calculating remaining load as: P={remaining_p:.4f} MW, Q={remaining_q:.4f} MVAr")
-
+    remaining_p = (site_totals["ansto_total_kw"] / 1000) - allocated_p
+    remaining_q = (site_totals["ansto_total_kvar"] / 1000) - allocated_q
+    logger.debug(
+        f"Calculating remaining load as: P={remaining_p:.4f} MW, Q={remaining_q:.4f} MVAr"
+    )
 
     simulated_subs = []
     for id, node in nodes.items():
@@ -163,23 +180,24 @@ def evaluate_load_flow_with_known_loads(nodes, lines, net, reading_set, site_tot
         # We also skip the slack bus
         if id not in loaded_subs and id != 0:
             pp.create_load(
-                net, 
-                node.node_object, 
-                p_mw= remaining_p * node.rating/remaining_rating, 
-                q_mvar= remaining_q * node.rating/remaining_rating, 
+                net,
+                node.node_object,
+                p_mw=remaining_p * node.rating / remaining_rating,
+                q_mvar=remaining_q * node.rating / remaining_rating,
                 scaling=GLOBAL_SCALING_FACTOR,
-                name=node.name
+                name=node.name,
             )
             simulated_subs.append(id)
 
             node.is_online = False
     logger.info(f"Created {len(simulated_subs)} loads from site-wide scaling.")
     logger.debug(f"Loaded: {simulated_subs}")
-    logger.notice(f"Processing load flow for timestamp: {Fore.LIGHTGREEN_EX}{site_totals['timestamp']}{Fore.RESET}")
+    logger.notice(
+        f"Processing load flow for timestamp: {Fore.LIGHTGREEN_EX}{site_totals['timestamp']}{Fore.RESET}"
+    )
     start = time.time()
     pp.runpp(net)
     stop = time.time()
-
 
     update_lines_from_results(lines, net.res_line)
     update_nodes_from_results(nodes, net.res_bus)
@@ -187,10 +205,12 @@ def evaluate_load_flow_with_known_loads(nodes, lines, net, reading_set, site_tot
     exec_time = stop - start
     return exec_time
 
+
 async def main():
     server = await websockets.serve(stream_modbus_logs, "127.0.0.1", 8080)
     print("Server started on ws://127.0.0.1:8080")
     await server.wait_closed()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

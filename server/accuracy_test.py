@@ -22,7 +22,13 @@ plt.rcParams["font.size"] = 12
 DB_PATH = "../sensitive/modbus_data.db"
 
 
-def load_timeseries(device_name: str, column: str, db_path: str = DB_PATH, start_date="2022-01-01 00:00:00", end_date="2025-02-25 10:30:00"):
+def load_timeseries(
+    device_name: str,
+    column: str,
+    db_path: str = DB_PATH,
+    start_date="2022-01-01 00:00:00",
+    end_date="2025-02-25 10:30:00",
+):
     valid_columns = {
         "id",
         "timestamp",
@@ -54,7 +60,7 @@ def load_timeseries(device_name: str, column: str, db_path: str = DB_PATH, start
         AND timestamp <= ?
         ORDER BY timestamp ASC
     """
-    df = pd.read_sql_query(query, conn, params=(device_name,start_date,end_date))
+    df = pd.read_sql_query(query, conn, params=(device_name, start_date, end_date))
     conn.close()
 
     df["timestamp"] = pd.to_datetime(df["timestamp"])
@@ -559,7 +565,9 @@ def plot_with_bands(states, losses, readings_per_day=96):
 
 if __name__ == "__main__":
 
-    states, losses = simulate_gilbert_elliot(p_good_to_bad=0.05, p_bad_to_good=0.2, loss_bad=0.9, loss_good=0.01)
+    states, losses = simulate_gilbert_elliot(
+        p_good_to_bad=0.05, p_bad_to_good=0.2, loss_bad=0.9, loss_good=0.01
+    )
     plot_with_bands(states, losses)
 
     # Every sample has a chance of being dropped or lost in the network

@@ -1,5 +1,6 @@
 import logging
 
+
 def report_loading_conditions(site_max_loads, characterised_loads):
 
     print("============= MAX DEMAND SITE LOADS ==============")
@@ -14,7 +15,10 @@ def report_loading_conditions(site_max_loads, characterised_loads):
 
     for substation, load_details in characterised_loads.items():
         max_p_load_percent, max_q_load_percent, max_p_load, max_q_load = load_details
-        print(f"{substation:<12} {max_p_load:>12.2f} {max_q_load:>15.2f} {max_p_load_percent*site_max_loads[0]:>10.2f} {max_q_load_percent*site_max_loads[1]:>10.2f}")
+        print(
+            f"{substation:<12} {max_p_load:>12.2f} {max_q_load:>15.2f} {max_p_load_percent*site_max_loads[0]:>10.2f} {max_q_load_percent*site_max_loads[1]:>10.2f}"
+        )
+
 
 def report_bus_voltages(net, decimals=2):
     res_bus = net.res_bus
@@ -39,8 +43,11 @@ def report_bus_voltages(net, decimals=2):
         p_kw = round(row["p_mw"] * 1000, decimals)
         q_kvar = round(row["q_mvar"] * 1000, decimals)
 
-        print(f"{idx:<8} {bus_name:<20} {v_mag:>10.{decimals}f} {v_ang:>13.{decimals}f} "
-              f"{p_kw:>10.{decimals}f} {q_kvar:>10.{decimals}f}")
+        print(
+            f"{idx:<8} {bus_name:<20} {v_mag:>10.{decimals}f} {v_ang:>13.{decimals}f} "
+            f"{p_kw:>10.{decimals}f} {q_kvar:>10.{decimals}f}"
+        )
+
 
 def report_line_loadings(net, decimals=2):
     res_line = net.res_line
@@ -52,9 +59,7 @@ def report_line_loadings(net, decimals=2):
         return
 
     print("============= LINE LOADING RESULTS =============")
-    header = (
-        f"{'Line ID':<8} {'From Bus':<20} {'To Bus':<20} {'Loading (%)':>13} {'I (A)':>10}"
-    )
+    header = f"{'Line ID':<8} {'From Bus':<20} {'To Bus':<20} {'Loading (%)':>13} {'I (A)':>10}"
     print(header)
     print("-" * len(header))
 
@@ -67,5 +72,7 @@ def report_line_loadings(net, decimals=2):
         loading = round(row["loading_percent"], decimals)
         i_amps = row["i_ka"] * 1000  # Convert kA to A
 
-        print(f"{idx:<8} {from_bus_name:<20} {to_bus_name:<20} "
-              f"{loading:>13.{decimals}f} {i_amps:>10.{decimals}f}")
+        print(
+            f"{idx:<8} {from_bus_name:<20} {to_bus_name:<20} "
+            f"{loading:>13.{decimals}f} {i_amps:>10.{decimals}f}"
+        )
