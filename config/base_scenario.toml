@@ -1,7 +1,0 @@
-debug = true
-target-voltage = 11000
-show = true
-force-active = false
-cable-file = "./cables.csv"
-network-file = "./network.csv"
-use-traditional=false
