@@ -68,9 +68,9 @@ NETWORK_CONFIGURATION_DIRTY = False
 
 
 async def stream_modbus_logs(websocket):
-    cable_types = load_cable_types("cables.csv")
-    nodes = load_nodes_from_disk("nodes.csv")
-    lines = load_lines_from_disk("links.csv")
+    cable_types = load_cable_types("./data/config/cables.csv")
+    nodes = load_nodes_from_disk("./data/config/nodes.csv")
+    lines = load_lines_from_disk("./data/config/links.csv")
 
     net, total_rating = build_network(nodes, lines, cable_types)
 

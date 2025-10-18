@@ -104,7 +104,7 @@ def analyze_weekly_load(data_tuples, substation):
     loc = ticker.MultipleLocator(base=12)
     ax.xaxis.set_major_locator(loc)
     ax.set_xlim(0, 335)
-    plt.savefig(f"graphs/{substation}_acf.png", dpi=300)
+    plt.savefig(f"./data/graphs/{substation}_acf.png", dpi=300)
     plt.close()
     # plt.show()
 
@@ -191,7 +191,7 @@ def count_continuity_errors(data, expected_delta):
     return continuity_errors
 
 
-def process_batch(data, n_values=(3, 5, 10), out_file="results_summary.csv"):
+def process_batch(data, n_values=(3, 5, 10), out_file="../data/results./data/results_summary.csv"):
     values = [v for _, v in data if not math.isnan(v)]
 
     rows = []
@@ -279,7 +279,7 @@ def process_substation(SUBSTATION, DB_PATH, EXPECTED_DELTA):
     continuity_errors = count_continuity_errors(data, EXPECTED_DELTA)
 
     results = process_batch(
-        data, n_values=range(2, 151), out_file=f"{SUBSTATION}_results.csv"
+        data, n_values=range(2, 151), out_file=f"../data/results/{SUBSTATION}_results.csv"
     )
 
     print(
@@ -313,7 +313,7 @@ def run_all(subs_to_test, DB_PATH, EXPECTED_DELTA):
             except Exception as e:
                 print(f"Substation {substation} failed: {e}")
 
-    with open("global_results.csv", "w", newline="") as results_file:
+    with open("../data/results/global_results.csv", "w", newline="") as results_file:
         writer = csv.writer(results_file)
         writer.writerow(
             [
@@ -330,7 +330,7 @@ def run_all(subs_to_test, DB_PATH, EXPECTED_DELTA):
 
 
 def plot_wmape_from_csv(substation):
-    df = pd.read_csv(f"{substation}_results.csv")
+    df = pd.read_csv(f"./data/results/{substation}_results.csv")
     df = df.apply(pd.to_numeric, errors="coerce")
     n_vals = df["n"].values
 
@@ -381,7 +381,7 @@ def plot_wmape_from_csv(substation):
     plt.legend()
     plt.grid(True, linestyle="--", alpha=0.6)
     plt.tight_layout()
-    plt.savefig(f"graphs/{substation}_extrapolation.png", dpi=300)
+    plt.savefig(f"./data/graphs/{substation}_extrapolation.png", dpi=300)
     plt.close()
 
 
@@ -436,7 +436,7 @@ def plot_typical_profile(data, subname, mode="daily"):
     plt.grid(True, linestyle="--", alpha=0.6)
     plt.legend()
     plt.tight_layout()
-    plt.savefig(f"graphs/{subname}_profile.png", dpi=300)
+    plt.savefig(f"./data/graphs/{subname}_profile.png", dpi=300)
     plt.close()
 
 
@@ -468,7 +468,7 @@ def plot_daily_max_by_year(data, sub):
     plt.xticks(month_starts, month_labels)
 
     plt.tight_layout()
-    plt.savefig(f"graphs/{sub}_max_demands.png", dpi=300)
+    plt.savefig(f"./data/graphs/{sub}_max_demands.png", dpi=300)
     plt.close()
 
 
@@ -527,41 +527,14 @@ def plot_with_bands(states, losses, readings_per_day=96):
     if start is not None:  # handle trailing bad patch
         ax.axvspan(start, t[-1], color="black", alpha=0.6)
 
-    # # Plot received/lost readings
-    # ax.scatter(t[~losses], np.ones(np.sum(~losses)),
-    #            color="green", marker="o", label="Received", s=10)
-    # ax.scatter(t[losses], np.ones(np.sum(losses)),
-    #            color="red", marker="x", label="Lost", s=20)
-
     ax.set_ylim(0.5, 1.5)
     ax.set_yticks([])
     ax.set_xlabel("Time (days)")
     ax.set_title("Gilbert-Elliot Simulation with Bad State Bands")
     ax.legend([span], ["Loss"])
     plt.tight_layout()
-    plt.savefig(f"graphs/GE_test.png", dpi=300)
+    plt.savefig(f"./data/graphs/GE_test.png", dpi=300)
     plt.close()
-
-
-# def specialised_accuracy_testing(subs_to_test, db_path, models, periods_to_test=["day","week","month","year"]):
-#     # We want to test the performance of our specialised medium term predictive models
-#     results = []
-#     for sub in subs_to_test:
-#         for model in models:
-#             for period in periods_to_test:
-#                 # Start date and end date should be between 2023-10-01 00:00:00 and 2024-10-01 00:00:00
-#                 training_data = load_timeseries(sub, "apparent_power", db_path, START_DATE, END_DATE)
-#                 verification_data = load_timeseries(sub, "apparent_power", db_path, END_DATE, END_DATE + 1 MONTH)
-
-#                 model.train(training_data)
-#                 wmape, average_absolute_error = model.test(verification_data)
-#                 results.append({
-#                     "model": model.name,
-#                     "period": period,
-#                     "substation": sub
-#                     "accuracy": wmape,
-#                     "mean_error": average_absolute_error
-#                 })
 
 if __name__ == "__main__":
 

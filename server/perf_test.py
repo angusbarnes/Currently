@@ -19,9 +19,9 @@ LOG_FILE = "experiment_results.csv"
 
 if __name__ == "__main__":
 
-    cable_types = load_cable_types("cables.csv")
-    nodes = load_nodes_from_disk("nodes.csv")
-    lines = load_lines_from_disk("links.csv")
+    cable_types = load_cable_types("./data/config/cables.csv")
+    nodes = load_nodes_from_disk("./data/config/nodes.csv")
+    lines = load_lines_from_disk("./data/config/links.csv")
     net, total_rating = build_network(nodes, lines, cable_types)
 
     readings = list(
@@ -109,4 +109,4 @@ if __name__ == "__main__":
         plt.legend()
         plt.grid(True, linestyle="--", alpha=0.6)
 
-    plt.savefig("graphs/perf_test.png", dpi=300)
+    plt.savefig("./data/graphs/perf_test.png", dpi=300)
