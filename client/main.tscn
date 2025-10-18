@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://bch3nb2j1ew0i"]
+[gd_scene load_steps=20 format=3 uid="uid://bch3nb2j1ew0i"]
 
 [ext_resource type="Script" uid="uid://clpxcdjb33jvx" path="res://UI/camera_controller.gd" id="1_h2yge"]
 [ext_resource type="Script" uid="uid://colu8s0mv4oeg" path="res://scripts/Canvas.gd" id="1_hxd7n"]
@@ -13,8 +13,16 @@
 [ext_resource type="Script" uid="uid://bn5e7bfwc3rph" path="res://scripts/AdvancedStatsDisplay.gd" id="10_efxa6"]
 [ext_resource type="Texture2D" uid="uid://ordr4rt47yav" path="res://Image/volt.png" id="11_ycdy4"]
 [ext_resource type="Texture2D" uid="uid://cfioeol50bu7q" path="res://Image/current.png" id="12_w48qg"]
+[ext_resource type="Texture2D" uid="uid://04r0sqwt1qkc" path="res://Image/100900_profile.png" id="14_w48qg"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_5vw27"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ycdy4"]
+bg_color = Color(0.74902, 0.45098, 0.25098, 1)
+corner_radius_top_left = 9
+corner_radius_top_right = 9
+corner_radius_bottom_right = 9
+corner_radius_bottom_left = 9
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7mycd"]
 bg_color = Color(0.377919, 0.377919, 0.377919, 1)
@@ -38,6 +46,7 @@ corner_radius_bottom_right = 10
 script = ExtResource("1_hxd7n")
 
 [node name="SldPageOne" type="Sprite2D" parent="."]
+visible = false
 z_index = -5
 material = ExtResource("2_272bh")
 position = Vector2(518, 229)
@@ -51,10 +60,10 @@ scale = Vector2(0.309396, 0.309396)
 texture = ExtResource("4_lquwl")
 
 [node name="ClickCatcher" type="Panel" parent="."]
-offset_left = -1047.0
-offset_top = -483.0
-offset_right = 1467.0
-offset_bottom = 1335.0
+offset_left = -1041.0
+offset_top = -498.0
+offset_right = 1473.0
+offset_bottom = 1320.0
 theme_override_styles/panel = SubResource("StyleBoxEmpty_5vw27")
 script = ExtResource("5_kek77")
 
@@ -72,9 +81,27 @@ points = PackedVector2Array(212, -152, -42, 27, -12, 200)
 line_id = "2"
 
 [node name="Line2D3" parent="LineRoot" instance=ExtResource("6_ycdy4")]
-position = Vector2(1143, 899)
-points = PackedVector2Array(141, 197, 96, 190, -12, 200)
+position = Vector2(1154, 920)
+points = PackedVector2Array(145, 193, 62, 193, -31, 193)
 line_id = "3"
+
+[node name="Label" parent="LineRoot/Line2D3" index="0"]
+offset_left = 22.0
+offset_top = 125.0
+offset_right = 69.0
+offset_bottom = 148.0
+
+[node name="Label2" parent="LineRoot/Line2D3" index="1"]
+offset_left = 21.0
+offset_top = 144.0
+offset_right = 81.0
+offset_bottom = 167.0
+
+[node name="Label3" parent="LineRoot/Line2D3" index="2"]
+offset_left = 22.0
+offset_top = 163.0
+offset_right = 84.0
+offset_bottom = 186.0
 
 [node name="Line2D4" parent="LineRoot" instance=ExtResource("6_ycdy4")]
 position = Vector2(-1736, -821)
@@ -169,10 +196,25 @@ substation_id = "111102"
 
 [node name="subpanel19" parent="SubstationRoot" instance=ExtResource("6_5vw27")]
 offset_left = 1283.0
-offset_top = 1054.0
-offset_right = 1446.0
+offset_top = 1043.0
+offset_right = 1447.0
 offset_bottom = 1188.0
 substation_id = "111200"
+
+[node name="Panel" type="Panel" parent="SubstationRoot/subpanel19/Panel" index="0"]
+layout_mode = 0
+offset_right = 15.0
+offset_bottom = 15.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_ycdy4")
+
+[node name="Label" type="Label" parent="SubstationRoot/subpanel19"]
+layout_mode = 0
+offset_left = 39.0
+offset_top = 116.0
+offset_right = 129.0
+offset_bottom = 139.0
+theme_override_colors/font_color = Color(0.781749, 0.467557, 0.25904, 1)
+text = "SIMULATED"
 
 [node name="subpanel20" parent="SubstationRoot" instance=ExtResource("6_5vw27")]
 offset_left = -1828.0
@@ -374,9 +416,10 @@ script = ExtResource("1_h2yge")
 base_pan_speed = 300.0
 
 [node name="PopupMenu" type="PopupMenu" parent="."]
+visible = true
+unfocusable = true
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
-visible = false
 
 [node name="Panel2" type="Panel" parent="CanvasLayer"]
 anchors_preset = 9
@@ -503,7 +546,7 @@ anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -290.0
-offset_bottom = 223.0
+offset_bottom = 649.0
 grow_horizontal = 0
 theme = ExtResource("5_lquwl")
 script = ExtResource("10_efxa6")
@@ -744,3 +787,41 @@ offset_top = 123.0
 offset_right = 50.0
 offset_bottom = 163.0
 script = ExtResource("8_4c57u")
+
+[node name="100900Profile" type="Sprite2D" parent="CanvasLayer"]
+position = Vector2(1008, 290)
+scale = Vector2(0.0726389, 0.0726389)
+texture = ExtResource("14_w48qg")
+
+[node name="Label2" type="Label" parent="CanvasLayer"]
+offset_left = 876.0
+offset_top = 393.0
+offset_right = 1118.0
+offset_bottom = 416.0
+text = "LastDayReplay                              9.1%"
+
+[node name="Label2" type="Label" parent="CanvasLayer/Label2"]
+layout_mode = 0
+offset_left = 1.0
+offset_top = 22.0
+offset_right = 264.0
+offset_bottom = 45.0
+text = "LastWeekReplay                        15.1%"
+
+[node name="Label3" type="Label" parent="CanvasLayer/Label2"]
+layout_mode = 0
+offset_left = 1.0
+offset_top = 42.0
+offset_right = 264.0
+offset_bottom = 65.0
+text = "LinearExtrap(4)                          24.3%"
+
+[node name="Label" type="Label" parent="CanvasLayer"]
+offset_left = 877.0
+offset_top = 366.0
+offset_right = 952.0
+offset_bottom = 389.0
+text = "FORECAST ALGORITHM SCORES"
+
+[editable path="LineRoot/Line2D3"]
+[editable path="SubstationRoot/subpanel19"]
