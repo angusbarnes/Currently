@@ -107,7 +107,7 @@ class Line:
     def serialise(self):
         _json = {}
 
-        _json["id"] = str(self.id)
+        _json["id"] = str(self.id) if self.id != 0 else '100'
         _json["name"] = self.name
         _json["length"] = self.length
         _json["type"] = self.type
