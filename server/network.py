@@ -166,6 +166,7 @@ class ActiveNode:
     p_mw: Optional[float] = None
     q_mvar: Optional[float] = None
     phase_data = None
+    load_scale_factor: float = 1.0
 
     gilbert_elliott_simulator: GilbertElliottSimulator = None
     valid_readings = []

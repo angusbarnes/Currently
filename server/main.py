@@ -167,7 +167,7 @@ def evaluate_load_flow_with_known_loads(
             NODE.node_object,
             p_mw=p,
             q_mvar=q,
-            scaling=GLOBAL_SCALING_FACTOR,
+            scaling=GLOBAL_SCALING_FACTOR * NODE.load_scale_factor,
             name=NODE.name,
         )
 
@@ -197,7 +197,7 @@ def evaluate_load_flow_with_known_loads(
                 node.node_object,
                 p_mw=remaining_p * node.rating / remaining_rating,
                 q_mvar=remaining_q * node.rating / remaining_rating,
-                scaling=GLOBAL_SCALING_FACTOR,
+                scaling=GLOBAL_SCALING_FACTOR * node.load_scale_factor,
                 name=node.name,
             )
             simulated_subs.append(id)
