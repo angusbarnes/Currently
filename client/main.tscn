@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3 uid="uid://bch3nb2j1ew0i"]
+[gd_scene load_steps=19 format=3 uid="uid://bch3nb2j1ew0i"]
 
 [ext_resource type="Script" uid="uid://clpxcdjb33jvx" path="res://UI/camera_controller.gd" id="1_h2yge"]
 [ext_resource type="Script" uid="uid://colu8s0mv4oeg" path="res://scripts/Canvas.gd" id="1_hxd7n"]
@@ -16,13 +16,6 @@
 [ext_resource type="Texture2D" uid="uid://juwmvn0d5ewm" path="res://Image/bg.jpg" id="15_vivmo"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_5vw27"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ycdy4"]
-bg_color = Color(0.74902, 0.45098, 0.25098, 1)
-corner_radius_top_left = 9
-corner_radius_top_right = 9
-corner_radius_bottom_right = 9
-corner_radius_bottom_left = 9
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7mycd"]
 bg_color = Color(0.377919, 0.377919, 0.377919, 1)
@@ -149,37 +142,6 @@ offset_top = 427.0
 offset_right = 120.0
 offset_bottom = 572.0
 substation_id = "111200"
-
-[node name="Panel" type="Panel" parent="SubstationRoot/subpanel19/Panel" index="0"]
-visible = false
-layout_mode = 0
-offset_right = 15.0
-offset_bottom = 15.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_ycdy4")
-
-[node name="power2" parent="SubstationRoot/subpanel19" index="7"]
-layout_mode = 0
-offset_left = 0.0
-offset_top = 0.0
-offset_right = 40.0
-offset_bottom = 23.0
-
-[node name="status" parent="SubstationRoot/subpanel19" index="8"]
-layout_mode = 0
-offset_left = 0.0
-offset_top = 0.0
-offset_right = 59.0
-offset_bottom = 23.0
-
-[node name="Label" type="Label" parent="SubstationRoot/subpanel19"]
-visible = false
-layout_mode = 0
-offset_left = 39.0
-offset_top = 116.0
-offset_right = 129.0
-offset_bottom = 139.0
-theme_override_colors/font_color = Color(0.781749, 0.467557, 0.25904, 1)
-text = "SIMULATED"
 
 [node name="subpanel20" parent="SubstationRoot" instance=ExtResource("6_5vw27")]
 offset_left = -1077.0
@@ -1689,7 +1651,6 @@ offset_bottom = -754.0
 theme_override_font_sizes/font_size = 36
 text = "SLACK BUS"
 
-[editable path="SubstationRoot/subpanel19"]
 [editable path="LineRoot/Line2D10"]
 [editable path="LineRoot/Line2D10/Line2D10"]
 [editable path="LineRoot/Line2D10/Line2D11"]
