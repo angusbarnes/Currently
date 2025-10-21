@@ -62,8 +62,6 @@ func _ready():
     line_label.text = line_id
 
 func update_data(data: Dictionary):
-    if data.has("name"):
-        line_label.text = data["name"]
     
     if data.has("loading"):
         loading_label.text = "%0.1f %%" % data["loading"]
