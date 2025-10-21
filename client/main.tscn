@@ -1644,12 +1644,12 @@ text = "FORECAST ALGORITHM SCORES"
 
 [node name="Label" type="Label" parent="."]
 z_index = 10
-offset_left = -85.0
+offset_left = -212.0
 offset_top = -804.0
-offset_right = 104.0
+offset_right = 116.0
 offset_bottom = -754.0
 theme_override_font_sizes/font_size = 36
-text = "SLACK BUS"
+text = "MAIN SUBSTATION"
 
 [editable path="LineRoot/Line2D10"]
 [editable path="LineRoot/Line2D10/Line2D10"]

@@ -8,7 +8,7 @@ extends Line2D
 @export var max_current: int
 
 var HEALTHY = Color.GREEN_YELLOW
-var OVERLOAD = Color.INDIAN_RED
+var OVERLOAD = Color.RED
 
 var is_selected: bool = false
 
