@@ -68,65 +68,68 @@ NETWORK_CONFIGURATION_DIRTY = False
 
 
 async def stream_modbus_logs(websocket):
-    cable_types = load_cable_types("./data/config/cables.csv")
-    nodes = load_nodes_from_disk("./data/config/nodes.csv")
-    lines = load_lines_from_disk("./data/config/links.csv")
-
-    net, total_rating = build_network(nodes, lines, cable_types)
-
-    tracemalloc.start()
-    snapshot1 = tracemalloc.take_snapshot()
-    peaks = []
     try:
-        for reading_set in database.fetch_batches(
-            "../sensitive/modbus_data.db", "2023-12-29 04:45:00"
-        ):
+        cable_types = load_cable_types("./data/config/cables.csv")
+        nodes = load_nodes_from_disk("./data/config/nodes.csv")
+        lines = load_lines_from_disk("./data/config/links.csv")
 
-            # If the underlying configuration has changed, rebuild the whole network
-            # otherwise used the cached networks structure and simply drop the loads
-            if NETWORK_CONFIGURATION_DIRTY:
-                net, total_rating = build_network(nodes, lines, cable_types)
-            else:
-                clear_network_loads(net)
+        net, total_rating = build_network(nodes, lines, cable_types)
 
-            site_totals = reading_set.pop()  # TODO: Make this more resilient
+        tracemalloc.start()
+        snapshot1 = tracemalloc.take_snapshot()
+        peaks = []
+        try:
+            for reading_set in database.fetch_batches(
+                "../sensitive/modbus_data.db", "2023-12-29 04:45:00"
+            ):
 
-            exec_time = evaluate_load_flow_with_known_loads(
-                nodes, lines, net, reading_set, site_totals, total_rating
-            )
+                # If the underlying configuration has changed, rebuild the whole network
+                # otherwise used the cached networks structure and simply drop the loads
+                if NETWORK_CONFIGURATION_DIRTY:
+                    net, total_rating = build_network(nodes, lines, cable_types)
+                else:
+                    clear_network_loads(net)
 
-            if exec_time > 0.7:
-                logger.warning(
-                    f"Main load flow evaluation time = {Fore.LIGHTRED_EX}{exec_time:.3f}{Fore.RESET} seconds."
+                site_totals = reading_set.pop()  # TODO: Make this more resilient
+
+                exec_time = evaluate_load_flow_with_known_loads(
+                    nodes, lines, net, reading_set, site_totals, total_rating
                 )
-            else:
-                logger.notice(
-                    f"Main load flow evaluation time = {exec_time:.3f} seconds."
+
+                if exec_time > 0.7:
+                    logger.warning(
+                        f"Main load flow evaluation time = {Fore.LIGHTRED_EX}{exec_time:.3f}{Fore.RESET} seconds."
+                    )
+                else:
+                    logger.notice(
+                        f"Main load flow evaluation time = {exec_time:.3f} seconds."
+                    )
+
+                current, peak = tracemalloc.get_traced_memory()
+                peaks.append(current)
+                if len(peaks) == 100:
+                    print(f"Average: {sum(peaks)/100} MB")
+                print(
+                    f"Memory usage: {current/1024/1024:.1f} MB; Peak: {peak/1024/1024:.1f} MB"
                 )
 
-            current, peak = tracemalloc.get_traced_memory()
-            peaks.append(current)
-            if len(peaks) == 100:
-                print(f"Average: {sum(peaks)/100} MB")
-                exit()
-            print(
-                f"Memory usage: {current/1024/1024:.1f} MB; Peak: {peak/1024/1024:.1f} MB"
-            )
+                data = {}
 
-            data = {}
+                data["line_data"] = serialise_list(list(lines.values()))
+                data["node_data"] = serialise_list(list(nodes.values()))
+                data["site_totals"] = site_totals
 
-            data["line_data"] = serialise_list(list(lines.values()))
-            data["node_data"] = serialise_list(list(nodes.values()))
-            data["site_totals"] = site_totals
+                packet = json.dumps(data, default=str)
+                print(f"Preparing to send a packet with size: {len(packet)/1024:.1f} kB")
+                await websocket.send(packet)
+                await asyncio.sleep(max(0, 2 - exec_time))
 
-            packet = json.dumps(data, default=str)
-            print(f"Preparing to send a packet with size: {len(packet)/1024:.1f} kB")
-            await websocket.send(packet)
-            await asyncio.sleep(max(0, 2 - exec_time))
+        except websockets.exceptions.ConnectionClosed:
+            print("Client disconnected")
+        tracemalloc.stop()
+    except Exception as e:
+        print(e)
 
-    except websockets.exceptions.ConnectionClosed:
-        print("Client disconnected")
-    tracemalloc.stop()
 
 
 def evaluate_load_flow_with_known_loads(
