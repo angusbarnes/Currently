@@ -144,21 +144,31 @@ def evaluate_load_flow_with_known_loads(
         except TypeError:
             continue
 
+        NODE = nodes[int(reading["device_name"])]
+        NODE.phase_data = [
+            reading["voltage_an"],
+            reading["voltage_bn"],
+            reading["voltage_cn"],
+            reading["current_a"],
+            reading["current_b"],
+            reading["current_c"]
+        ]
+
         loaded_subs.append(int(reading["device_name"]))
 
         allocated_p += p
         allocated_q += q
-        remaining_rating -= nodes[int(reading["device_name"])].rating
+        remaining_rating -= NODE.rating
         pp.create_load(
             net,
-            nodes[int(reading["device_name"])].node_object,
+            NODE.node_object,
             p_mw=p,
             q_mvar=q,
             scaling=GLOBAL_SCALING_FACTOR,
-            name=nodes[int(reading["device_name"])].name,
+            name=NODE.name,
         )
 
-        nodes[int(reading["device_name"])].is_online = True
+        NODE.is_online = True
 
         logger.debug(
             f"Loaded {int(reading['device_name'])} with P={reading['power_active']/1000}, Q={reading['power_reactive']/1000}"

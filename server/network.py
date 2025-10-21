@@ -165,6 +165,7 @@ class ActiveNode:
     va_degree: Optional[float] = None
     p_mw: Optional[float] = None
     q_mvar: Optional[float] = None
+    phase_data = None
 
     gilbert_elliott_simulator: GilbertElliottSimulator = None
     valid_readings = []
@@ -180,6 +181,14 @@ class ActiveNode:
         _json["q_kvar"] = assure_float(self.q_mvar) * 1000
         _json["phase"] = assure_float(self.va_degree)
         _json["online"] = self.is_online
+
+        if self.phase_data:
+            _json["av"] = self.phase_data[0]
+            _json["bv"] = self.phase_data[1]
+            _json["cv"] = self.phase_data[2]
+            _json["ai"] = self.phase_data[3]
+            _json["bi"] = self.phase_data[4]
+            _json["ci"] = self.phase_data[5]
 
         return _json
 

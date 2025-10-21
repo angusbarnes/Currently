@@ -16,15 +16,16 @@ var last_selected_sub: SubstationTile = null
 
 func _substation_selection_changed(tile: SubstationTile):
     last_selected_sub = tile
+    print("Advanced stats recieved selection changed")
 
 func _process(delta):
     if last_selected_sub == null:
         return
     var data = last_selected_sub.get_last_interval()
     
-    phase_a_label.text = Utils.safe_get_number_from_dict(data, "voltage_an")
-    phase_b_label.text = Utils.safe_get_number_from_dict(data, "voltage_bn")
-    phase_c_label.text = Utils.safe_get_number_from_dict(data, "voltage_cn")
-    current_a_label.text = Utils.safe_get_number_from_dict(data, "current_a")
-    current_b_label.text = Utils.safe_get_number_from_dict(data, "current_b")
-    current_c_label.text = Utils.safe_get_number_from_dict(data, "current_c")
+    phase_a_label.text = Utils.safe_get_number_from_dict(data, "av")
+    phase_b_label.text = Utils.safe_get_number_from_dict(data, "bv")
+    phase_c_label.text = Utils.safe_get_number_from_dict(data, "cv")
+    current_a_label.text = Utils.safe_get_number_from_dict(data, "ai")
+    current_b_label.text = Utils.safe_get_number_from_dict(data, "bi")
+    current_c_label.text = Utils.safe_get_number_from_dict(data, "ci")

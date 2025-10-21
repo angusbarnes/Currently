@@ -6,6 +6,7 @@ var selected_tiles: Array[SubstationTile] = []
 
 func select(tile: SubstationTile, ctrl_pressed: bool):
     selection_changed.emit(tile)
+    print("Selection changed")
     if ctrl_pressed:
         # Toggle
         if tile in selected_tiles:
