@@ -42,9 +42,9 @@ func _default_style() -> StyleBoxFlat:
 func _selected_style() -> StyleBoxFlat:
     var sb = StyleBoxFlat.new()
     sb.bg_color = Color(0.104, 0.104, 0.104)
-    sb.set_border_width_all(3.0)
+    sb.set_border_width_all(5.0)
     sb.set_corner_radius_all(12)
-    sb.set_expand_margin_all(3.0)
+    sb.set_expand_margin_all(5.0)
     sb.border_color = Color.YELLOW
     return sb
     
@@ -65,8 +65,8 @@ func update_online_status(online: bool):
             status_label.text = "SIMULATED"
             status_label.add_theme_color_override("font_color", Color.TOMATO)
 
-        
-        add_theme_stylebox_override("panel", _default_style())
+        if not is_selected:
+            add_theme_stylebox_override("panel", _default_style())
         connected_status_panel.add_theme_stylebox_override("panel", sb)
 
 func _ready():

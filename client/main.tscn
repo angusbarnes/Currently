@@ -1649,6 +1649,7 @@ offset_bottom = 163.0
 script = ExtResource("8_4c57u")
 
 [node name="Label2" type="Label" parent="CanvasLayer"]
+visible = false
 offset_left = 876.0
 offset_top = 393.0
 offset_right = 1118.0
@@ -1672,6 +1673,7 @@ offset_bottom = 65.0
 text = "LinearExtrap(4)                          24.3%"
 
 [node name="Label" type="Label" parent="CanvasLayer"]
+visible = false
 offset_left = 877.0
 offset_top = 366.0
 offset_right = 952.0
