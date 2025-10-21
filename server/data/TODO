@@ -1,0 +1,15 @@
+1. Fix Substation Layout    SUN
+2. Add additional data to sub side panel SUN
+    - Name
+    - Date
+    - Type
+3. Verify Experiment Ouputs for Demo SUN
+4. Add realtime prediction scoring SUN
+5. Add scoreboard to side panel MON
+6. Do Poster WED-FRI
+7. Do Slides WED-FRI
+8. Add contingency Toggle
+fix ONLINE STATUS
+Add simulated tag
+Add dynamic load scale
+Add reset button
