@@ -7,7 +7,9 @@ class_name SubstationTile
 @export var voltage_label: Label
 @export var current_label: Label
 @export var power_label: Label
+@export var status_label: Label
 var is_selected: bool = false
+var is_online = false
 
 func _gui_input(event: InputEvent) -> void:
     if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -31,9 +33,10 @@ func _toggle_selection():
 func _default_style() -> StyleBoxFlat:
     var sb = StyleBoxFlat.new()
     sb.bg_color = Color(0.104, 0.104, 0.104) # grey background
+    sb.set_border_width_all(3.0)
     sb.set_corner_radius_all(12)
-    sb.set_border_width_all(0)
-    sb.set_expand_margin_all(0)
+    sb.set_expand_margin_all(3.0)
+    sb.border_color = Color.CHARTREUSE if is_online else Color.TOMATO
     return sb
 
 func _selected_style() -> StyleBoxFlat:
@@ -53,15 +56,24 @@ func update_online_status(online: bool):
             sb.bg_color = Color.ORANGE;
         elif online:
             sb.bg_color = Color.CHARTREUSE;
+            is_online = true
+            status_label.text = "ONLINE"
+            status_label.add_theme_color_override("font_color", Color.CHARTREUSE)
         else:
             sb.bg_color = Color.TOMATO
-    
+            is_online = false
+            status_label.text = "SIMULATED"
+            status_label.add_theme_color_override("font_color", Color.TOMATO)
+
+        
+        add_theme_stylebox_override("panel", _default_style())
         connected_status_panel.add_theme_stylebox_override("panel", sb)
 
 func _ready():
     assert(substation_id.length() != 0, "Substation ID cannot be empty!")
     SubstationManager.register_tile(substation_id, self)
     substation_label.text = substation_id
+    add_theme_stylebox_override("panel", _default_style())
     
     
 func get_last_interval() -> Dictionary:

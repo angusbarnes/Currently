@@ -13,7 +13,7 @@
 [ext_resource type="Script" uid="uid://bn5e7bfwc3rph" path="res://scripts/AdvancedStatsDisplay.gd" id="10_efxa6"]
 [ext_resource type="Texture2D" uid="uid://ordr4rt47yav" path="res://Image/volt.png" id="11_ycdy4"]
 [ext_resource type="Texture2D" uid="uid://cfioeol50bu7q" path="res://Image/current.png" id="12_w48qg"]
-[ext_resource type="Texture2D" uid="uid://04r0sqwt1qkc" path="res://Image/100900_profile.png" id="14_w48qg"]
+[ext_resource type="Texture2D" uid="uid://juwmvn0d5ewm" path="res://Image/bg.jpg" id="15_vivmo"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_5vw27"]
 
@@ -44,6 +44,15 @@ corner_radius_bottom_right = 10
 
 [node name="UI Root" type="Node2D"]
 script = ExtResource("1_hxd7n")
+
+[node name="STATIC_BACKGROUND" type="CanvasLayer" parent="."]
+layer = -15
+follow_viewport_enabled = true
+
+[node name="Bg" type="Sprite2D" parent="STATIC_BACKGROUND"]
+position = Vector2(-221, -263)
+scale = Vector2(1.33363, 1.33363)
+texture = ExtResource("15_vivmo")
 
 [node name="SldPageOne" type="Sprite2D" parent="."]
 visible = false
@@ -147,6 +156,20 @@ layout_mode = 0
 offset_right = 15.0
 offset_bottom = 15.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_ycdy4")
+
+[node name="power2" parent="SubstationRoot/subpanel19" index="7"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="status" parent="SubstationRoot/subpanel19" index="8"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 59.0
+offset_bottom = 23.0
 
 [node name="Label" type="Label" parent="SubstationRoot/subpanel19"]
 visible = false
@@ -673,6 +696,7 @@ offset_bottom = 216.0
 z_index = -10
 position = Vector2(-248, -821)
 points = PackedVector2Array(380, 55, 742, 55, 742, 271)
+round_precision = 12
 line_id = "19"
 
 [node name="Label" parent="LineRoot/Line2D24" index="0"]
@@ -1256,10 +1280,7 @@ base_pan_speed = 300.0
 [node name="Panel2" type="Panel" parent="CanvasLayer"]
 anchors_preset = 9
 anchor_bottom = 1.0
-offset_left = -1.0
-offset_top = -1.0
-offset_right = 299.0
-offset_bottom = -1.0
+offset_right = 300.0
 grow_vertical = 2
 theme = ExtResource("5_lquwl")
 
@@ -1281,6 +1302,7 @@ layout_mode = 2
 theme_override_constants/separation = 5
 
 [node name="Panel4" type="Panel" parent="CanvasLayer/Panel2/MarginContainer/VBoxContainer"]
+visible = false
 custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
 size_flags_stretch_ratio = 1.47
@@ -1312,6 +1334,7 @@ grow_vertical = 2
 text = "Substation 21"
 
 [node name="Panel3" type="Panel" parent="CanvasLayer/Panel2/MarginContainer/VBoxContainer"]
+visible = false
 custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
 size_flags_stretch_ratio = 1.47
@@ -1343,6 +1366,7 @@ grow_vertical = 2
 text = "Substation 10"
 
 [node name="Panel2" type="Panel" parent="CanvasLayer/Panel2/MarginContainer/VBoxContainer"]
+visible = false
 custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
 size_flags_stretch_ratio = 1.47
@@ -1374,12 +1398,16 @@ grow_vertical = 2
 text = "Substation 21"
 
 [node name="Panel" type="Panel" parent="CanvasLayer" node_paths=PackedStringArray("phase_a_label", "phase_b_label", "phase_c_label", "current_a_label", "current_b_label", "current_c_label")]
-anchors_preset = 1
+layout_direction = 2
+anchors_preset = 11
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -290.0
-offset_bottom = 649.0
+anchor_bottom = 1.0
+offset_left = -225.26
+offset_right = 20.885
 grow_horizontal = 0
+grow_vertical = 2
+size_flags_vertical = 3
 theme = ExtResource("5_lquwl")
 script = ExtResource("10_efxa6")
 phase_a_label = NodePath("Volt A/Panel2/Label2")
@@ -1619,11 +1647,6 @@ offset_top = 123.0
 offset_right = 50.0
 offset_bottom = 163.0
 script = ExtResource("8_4c57u")
-
-[node name="100900Profile" type="Sprite2D" parent="CanvasLayer"]
-position = Vector2(1008, 290)
-scale = Vector2(0.0726389, 0.0726389)
-texture = ExtResource("14_w48qg")
 
 [node name="Label2" type="Label" parent="CanvasLayer"]
 offset_left = 876.0
