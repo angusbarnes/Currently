@@ -62,6 +62,7 @@ from scipy.io import savemat
 import asyncio
 import websockets
 import tracemalloc
+from plugin_host import PluginHost
 
 GLOBAL_SCALING_FACTOR = 5
 NETWORK_CONFIGURATION_DIRTY = False
@@ -220,6 +221,9 @@ def evaluate_load_flow_with_known_loads(
 
 
 async def main():
+    host = PluginHost("plugins")
+    host.start_watcher()
+
     server = await websockets.serve(stream_modbus_logs, "127.0.0.1", 8080)
     print("Server started on ws://127.0.0.1:8080")
     await server.wait_closed()
