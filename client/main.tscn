@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3 uid="uid://bch3nb2j1ew0i"]
+[gd_scene load_steps=21 format=3 uid="uid://bch3nb2j1ew0i"]
 
 [ext_resource type="Script" uid="uid://clpxcdjb33jvx" path="res://UI/camera_controller.gd" id="1_h2yge"]
 [ext_resource type="Script" uid="uid://colu8s0mv4oeg" path="res://scripts/Canvas.gd" id="1_hxd7n"]
@@ -13,7 +13,9 @@
 [ext_resource type="Script" uid="uid://bn5e7bfwc3rph" path="res://scripts/AdvancedStatsDisplay.gd" id="10_efxa6"]
 [ext_resource type="Texture2D" uid="uid://ordr4rt47yav" path="res://Image/volt.png" id="11_ycdy4"]
 [ext_resource type="Texture2D" uid="uid://cfioeol50bu7q" path="res://Image/current.png" id="12_w48qg"]
+[ext_resource type="Script" uid="uid://cnde0hrhfba37" path="res://Scoreboard.gd" id="14_2cqfq"]
 [ext_resource type="Texture2D" uid="uid://juwmvn0d5ewm" path="res://Image/bg.jpg" id="15_vivmo"]
+[ext_resource type="PackedScene" uid="uid://dn7n3jc6ubqri" path="res://Entry.tscn" id="15_yaehf"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_5vw27"]
 
@@ -28,6 +30,8 @@ corner_detail = 14
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vivmo"]
 bg_color = Color(0.162066, 0.162066, 0.162066, 1)
 corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2cqfq"]
@@ -1365,8 +1369,8 @@ anchors_preset = 11
 anchor_left = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -225.26
-offset_right = 20.885
+offset_left = -244.26
+offset_right = 1.88501
 grow_horizontal = 0
 grow_vertical = 2
 size_flags_vertical = 3
@@ -1600,6 +1604,39 @@ offset_top = 4.0
 offset_right = 63.0
 offset_bottom = 27.0
 text = "240.24"
+
+[node name="Scoreboard" type="Panel" parent="CanvasLayer/Panel"]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 215.0
+offset_right = 237.0
+offset_bottom = 247.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_vivmo")
+script = ExtResource("14_2cqfq")
+entry_scene = ExtResource("15_yaehf")
+
+[node name="Label" type="Label" parent="CanvasLayer/Panel/Scoreboard"]
+layout_mode = 0
+offset_left = 6.26001
+offset_top = 4.0
+offset_right = 79.26
+offset_bottom = 27.0
+text = "Model"
+
+[node name="Label2" type="Label" parent="CanvasLayer/Panel/Scoreboard"]
+layout_mode = 0
+offset_left = 179.26
+offset_top = 4.0
+offset_right = 252.26
+offset_bottom = 27.0
+text = "Score"
+
+[node name="ScoreboardContainer" type="VBoxContainer" parent="CanvasLayer/Panel/Scoreboard"]
+layout_mode = 0
+offset_left = 3.0
+offset_top = 36.0
+offset_right = 226.0
+offset_bottom = 297.0
 
 [node name="Control" type="Control" parent="CanvasLayer"]
 layout_mode = 3

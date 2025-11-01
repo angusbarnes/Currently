@@ -88,6 +88,7 @@ scale = Vector2(0.0277027, 0.0277027)
 texture = ExtResource("4_iem1w")
 
 [node name="power2" type="Label" parent="."]
+layout_mode = 0
 offset_left = 7.0
 offset_top = 71.0
 offset_right = 47.0
@@ -95,6 +96,7 @@ offset_bottom = 94.0
 text = "🔋"
 
 [node name="status" type="Label" parent="."]
+layout_mode = 0
 offset_left = 42.0
 offset_top = 93.0
 offset_right = 101.0
