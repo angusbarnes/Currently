@@ -111,7 +111,7 @@ def test_modbus_logs():
                 site_totals,
                 total_rating,
                 simulate_network=True,
-                batch_allocate=False,
+                batch_allocate=True,
             )
 
             timestamp = site_totals["timestamp"]
