@@ -11,3 +11,6 @@ class Plugin:
 
     def on_tick(self, dt):
         print(f"[ExamplePlugin] Tick: {dt}")
+
+    def get_type(self):
+        return "Example"

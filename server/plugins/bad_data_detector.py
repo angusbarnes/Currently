@@ -7,3 +7,12 @@ class Plugin:
 
     def deregister(self):
         print("[ExamplePlugin] Deregistered")
+
+    def get_type(self):
+        return "MODEL"
+    
+    def predict_next(self):
+        return "MODEL"
+    
+    def update_history(self):
+        pass

@@ -70,7 +70,7 @@ class PluginHost:
             self.load_plugin(name)
 
     def load_plugin(self, name):
-        modname = f"{self.plugin_dir.removeprefix("./")}.{name.removesuffix(".py")}"
+        modname = f"{self.plugin_dir.removeprefix('./')}.{name.removesuffix('.py')}"
         path = os.path.join(self.plugin_dir, name)
         hash_ = self._calc_hash(path)
 
@@ -148,7 +148,7 @@ class PluginHost:
 
     def _instantiate(self, module: ModuleType):
         for _, cls in inspect.getmembers(module, inspect.isclass):
-            if hasattr(cls, "register") and hasattr(cls, "deregister"):
+            if hasattr(cls, "register") and hasattr(cls, "deregister") and hasattr(cls, "get_type"):
                 instance = cls(self)
                 instance.register()
                 return instance
@@ -246,6 +246,30 @@ class PluginHost:
                     logging.info(f"[HotReloadingModule 🔥] ⚠️ Unknown plugin action: {action}")
         except queue.Empty:
             pass
+
+
+    def __type_schema_check(self, type, classobj):
+        if type == "MODEL":
+            if hasattr(classobj, "predict_next") and hasattr(classobj, "get_formatted_name"):
+                return True
+            else: return False
+
+        return True
+
+    def get_all_plugins(self, type: str = None):
+        if type:
+
+            typed_plugins = []
+            candidates = [self.plugins[plugin][1] for plugin in self.plugins if self.plugins[plugin][1].get_type() == type]
+
+            for candidate in candidates:
+                if self.__type_schema_check(type, candidate):
+                    typed_plugins.append(candidate)
+                else:
+                    logging.warning(f"[HotReloadingModule 🔥] ⚠️ Plugin: {candidate} is malformed")
+            return typed_plugins
+        else:
+            return self.plugins
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
