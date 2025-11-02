@@ -6,13 +6,8 @@ extends Control
 func _ready():
     SelectionManager.selection_changed.connect(_substation_selection_changed)
     
-func _substation_selection_changed(substation):
-    var player_scores = {
-        "Alice": 0.85,
-        "Bob": 0.92,
-        "Carol": 0.77
-    }
-    populate_scoreboard(player_scores)
+func _substation_selection_changed(substation: SubstationTile):
+    populate_scoreboard(substation.model_perf)
 
 func populate_scoreboard(scores: Dictionary) -> void:
 

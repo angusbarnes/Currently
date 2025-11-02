@@ -43,6 +43,7 @@ func _process_messages():
             var msg = packet.get_string_from_utf8()
             ##print("[WS] Received: %s" % msg)
             _handle_message(msg)
+            SelectionManager.update()
         else:
             print("[WS] Received non-string packet, ignoring.")
 

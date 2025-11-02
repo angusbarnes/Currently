@@ -10,6 +10,7 @@ class_name SubstationTile
 @export var status_label: Label
 var is_selected: bool = false
 var is_online = false
+var model_perf: Dictionary
 
 func _gui_input(event: InputEvent) -> void:
     if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -106,6 +107,9 @@ func update_data(data: Dictionary):
         power_label.text = "%0.1f kVAr" % data["q_kvar"]
     if data.has("online"):
         update_online_status(data["online"])
+        
+    if has_safe_value(data, "model_perf"):
+        model_perf = data["model_perf"]
 
 # Example of user-triggered config change
 func _on_button_pressed():

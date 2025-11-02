@@ -1,11 +1,17 @@
 extends Node
 
 signal selection_changed(substation: SubstationTile)
+var last_selected: SubstationTile
 
 var selected_tiles: Array[SubstationTile] = []
 
+func update():
+    if last_selected != null:
+        selection_changed.emit(last_selected)
+
 func select(tile: SubstationTile, ctrl_pressed: bool):
     selection_changed.emit(tile)
+    last_selected = tile
     print("Selection changed")
     if ctrl_pressed:
         # Toggle
