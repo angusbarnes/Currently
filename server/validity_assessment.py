@@ -66,7 +66,7 @@ def test_modbus_logs():
     lines = load_lines_from_disk("./data/config/links.csv")
     net, total_rating = build_network(nodes, lines, cable_types)
 
-    with open("./data/results/validity_results.csv", "w", newline="") as outfile:
+    with open("./data/results/validity_results_new.csv", "w", newline="") as outfile:
         writer = csv.writer(outfile)
 
         writer.writerow(
@@ -81,7 +81,7 @@ def test_modbus_logs():
                 "simulated_i",
             ]
         )
-        for reading_set in database.fetch_batches(
+        for reading_set in database.fetch_reading_set(
             "../sensitive/modbus_data.db", "2023-12-29 04:45:00"
         ):
 

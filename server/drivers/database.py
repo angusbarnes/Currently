@@ -4,7 +4,7 @@ import time
 from typing import Generator, List, Dict, Any
 
 
-def fetch_batches(
+def fetch_reading_set(
     db_path: str, start_time
 ) -> Generator[List[Dict[str, Any]], None, None]:
     conn = sqlite3.connect(db_path)
@@ -29,6 +29,6 @@ def fetch_batches(
 
 
 if __name__ == "__main__":
-    for batch in fetch_batches("../sensitive/modbus_data.db"):
+    for batch in fetch_reading_set("../sensitive/modbus_data.db"):
         print(batch)
         time.sleep(1)

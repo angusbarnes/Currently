@@ -10,6 +10,8 @@ import pandapower as pp
 import pandapower.networks as pn
 import numpy as np
 import random
+from collections import defaultdict
+import math
 
 from typing import List, Dict
 
@@ -153,23 +155,53 @@ class ActiveNode:
     name: str
     rating: float
     is_active: bool = True
-    node_lv_nominal: float = 415
+    node_lv_nominal: float = 415.0
     is_transformer_node: bool = True
     node_mv_nominal: float = 11.0
-    node_object: object = None
+    node_object: Optional[object] = None
     comment: str = ""
 
     is_online: bool = False
-
     vm_pu: Optional[float] = None
     va_degree: Optional[float] = None
     p_mw: Optional[float] = None
     q_mvar: Optional[float] = None
-    phase_data = None
+    phase_data: Optional[object] = None
     load_scale_factor: float = 1.0
 
-    gilbert_elliott_simulator: GilbertElliottSimulator = None
-    valid_readings = []
+    gilbert_elliott_simulator: Optional[object] = None
+
+    valid_readings: list = field(default_factory=list)
+    raw_reading_history: list = field(default_factory=list)
+    model_prediction_history: list = field(default_factory=list)
+
+    def add_raw_reading(self, time, s):
+        self.raw_reading_history.append((time, s))
+
+    def update_model_history(self, model, guess, actual):
+        self.model_prediction_history.append((model, guess, actual))
+
+    def compute_wmape_per_model(self):
+        grouped = defaultdict(list)
+        for model, guess, actual in self.model_prediction_history:
+            grouped[model].append((guess, actual))
+
+        results = {}
+        for model, pairs in grouped.items():
+            abs_error_sum = 0.0
+            actual_sum = 0.0
+            for guess, actual in pairs:
+                if math.isnan(actual) or math.isnan(guess):
+                    continue
+                abs_error_sum += abs(actual - guess)
+                actual_sum += abs(actual)
+            if actual_sum > 0:
+                results[model] = abs_error_sum / actual_sum
+            else:
+                results[model] = -1 # This may cause bugs, maybe use float('nan') in future??
+
+        return results
+    
 
     def serialise(self):
         _json = {}
@@ -182,6 +214,8 @@ class ActiveNode:
         _json["q_kvar"] = assure_float(self.q_mvar) * 1000
         _json["phase"] = assure_float(self.va_degree)
         _json["online"] = self.is_online
+
+        _json["model_perf"] = self.compute_wmape_per_model()
 
         if self.phase_data:
             _json["av"] = self.phase_data[0]

@@ -69,6 +69,10 @@ NETWORK_CONFIGURATION_DIRTY = False
 
 
 async def stream_modbus_logs(websocket):
+    host = PluginHost("plugins")
+    host.start_watcher()
+
+
     try:
         cable_types = load_cable_types("./data/config/cables.csv")
         nodes = load_nodes_from_disk("./data/config/nodes.csv")
@@ -80,9 +84,14 @@ async def stream_modbus_logs(websocket):
         snapshot1 = tracemalloc.take_snapshot()
         peaks = []
         try:
-            for reading_set in database.fetch_batches(
+            for reading_set in database.fetch_reading_set(
                 "../sensitive/modbus_data.db", "2023-12-29 04:45:00"
             ):
+                
+                # Check for plugin changes on every server tick
+                host.process_plugin_events()
+                prediction_models = host.get_all_plugins('MODEL')
+                logging.info(f"Current Plugins: {prediction_models}")
 
                 # If the underlying configuration has changed, rebuild the whole network
                 # otherwise used the cached networks structure and simply drop the loads
@@ -94,7 +103,7 @@ async def stream_modbus_logs(websocket):
                 site_totals = reading_set.pop()  # TODO: Make this more resilient
 
                 exec_time = evaluate_load_flow_with_known_loads(
-                    nodes, lines, net, reading_set, site_totals, total_rating
+                    nodes, lines, net, reading_set, site_totals, total_rating, prediction_models
                 )
 
                 if exec_time > 0.7:
@@ -129,12 +138,12 @@ async def stream_modbus_logs(websocket):
             print("Client disconnected")
         tracemalloc.stop()
     except Exception as e:
-        print(e)
+        print(e.with_traceback())
 
-
-
+# This is and gross function signature and should be refined if possible
+# feeding this many parameters is likely a bad sign on dependency flow
 def evaluate_load_flow_with_known_loads(
-    nodes, lines, net, reading_set, site_totals, total_rating
+    nodes, lines, net, reading_set, site_totals, total_rating, models
 ):
     remaining_rating = total_rating
     loaded_subs = []
@@ -148,7 +157,7 @@ def evaluate_load_flow_with_known_loads(
         except TypeError:
             continue
 
-        NODE = nodes[int(reading["device_name"])]
+        NODE : ActiveNode = nodes[int(reading["device_name"])]
         NODE.phase_data = [
             reading["voltage_an"],
             reading["voltage_bn"],
@@ -157,6 +166,15 @@ def evaluate_load_flow_with_known_loads(
             reading["current_b"],
             reading["current_c"]
         ]
+
+        for model in models:
+            result = model.predict_next(NODE.raw_reading_history)
+
+            # Don't start scoring models until they are valid
+            if result is not None:
+                NODE.update_model_history(model.get_formatted_name(), result, reading["power_apparent"])
+            
+            NODE.add_raw_reading(site_totals['timestamp'], reading["power_apparent"])
 
         loaded_subs.append(int(reading["device_name"]))
 
@@ -221,8 +239,7 @@ def evaluate_load_flow_with_known_loads(
 
 
 async def main():
-    host = PluginHost("plugins")
-    host.start_watcher()
+
 
     server = await websockets.serve(stream_modbus_logs, "127.0.0.1", 8080)
     print("Server started on ws://127.0.0.1:8080")

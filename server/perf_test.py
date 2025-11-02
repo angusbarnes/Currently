@@ -26,7 +26,7 @@ if __name__ == "__main__":
 
     readings = list(
         itertools.islice(
-            database.fetch_batches(
+            database.fetch_reading_set(
                 "../sensitive/modbus_data.db", "2023-12-29 04:45:00"
             ),
             100,
