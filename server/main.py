@@ -83,9 +83,11 @@ async def stream_modbus_logs(websocket):
         tracemalloc.start()
         snapshot1 = tracemalloc.take_snapshot()
         peaks = []
+
+        count = 0
         try:
             for reading_set in database.fetch_reading_set(
-                "../sensitive/modbus_data.db", "2023-12-29 04:45:00"
+                "../sensitive/modbus_data.db", "2024-10-01 04:45:00"
             ):
                 
                 # Check for plugin changes on every server tick
@@ -132,7 +134,11 @@ async def stream_modbus_logs(websocket):
                 packet = json.dumps(data, default=str)
                 print(f"Preparing to send a packet with size: {len(packet)/1024:.1f} kB")
                 await websocket.send(packet)
-                await asyncio.sleep(max(0, 2 - exec_time))
+
+                if count < 7 * 96:
+                    count += 1
+                    continue
+                else: await asyncio.sleep(max(0, 2 - exec_time))
 
         except websockets.exceptions.ConnectionClosed:
             print("Client disconnected")
@@ -169,12 +175,13 @@ def evaluate_load_flow_with_known_loads(
 
         for model in models:
             result = model.predict_next(NODE.raw_reading_history)
+            #print(f"{model}, {result}, {reading['power_apparent']}")
 
             # Don't start scoring models until they are valid
             if result is not None:
                 NODE.update_model_history(model.get_formatted_name(), result, reading["power_apparent"])
             
-            NODE.add_raw_reading(site_totals['timestamp'], reading["power_apparent"])
+        NODE.add_raw_reading(site_totals['timestamp'], reading["power_apparent"])
 
         loaded_subs.append(int(reading["device_name"]))
 

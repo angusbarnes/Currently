@@ -1244,6 +1244,7 @@ base_pan_speed = 300.0
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
 [node name="Panel2" type="Panel" parent="CanvasLayer"]
+visible = false
 anchors_preset = 9
 anchor_bottom = 1.0
 offset_right = 300.0
@@ -1639,6 +1640,7 @@ offset_right = 226.0
 offset_bottom = 297.0
 
 [node name="Control" type="Control" parent="CanvasLayer"]
+visible = false
 layout_mode = 3
 anchors_preset = 0
 offset_left = 10.0
